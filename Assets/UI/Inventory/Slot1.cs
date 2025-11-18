@@ -18,7 +18,7 @@ public class Slot1 : SlotBase<int>
     {
         // 슬롯에 정수형 데이터를 텍스트로 변환하여 표시
         text.text = data.ToString();
-        SlotId = data;
+        SlotData = data;
     }
 
     public override void SlotSelect()

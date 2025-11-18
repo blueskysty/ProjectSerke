@@ -6,10 +6,21 @@ public abstract class SlotBase<T>: MonoBehaviour
     protected RectTransform _rectTransform;
     protected int slotdata;                       //데이터 정보
 
+    public int SlotData
+    {
+        get
+        {
+            return slotdata;
+        }
+        set
+        {
+            slotdata = value;
+        }
+    }
+
     public RectTransform RectTransform => _rectTransform;
     public float Height => _rectTransform.rect.height;
     public float Width => _rectTransform.rect.width;
-    public int SlotData => slotdata;
 
     public abstract void Init();
 

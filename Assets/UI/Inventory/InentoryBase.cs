@@ -39,32 +39,6 @@ public abstract class InentoryBase<T>: MonoBehaviour
     protected int selectedIndex = 0;    // 선택된 아이템 리스트 순서
 
 
-    // wasd로 이동
-    protected void KeyInput()
-    {
-        if (keyPress)
-        {
-            //0.15초 누르면 동작 실행
-            presstime += Time.unscaledDeltaTime;
-
-            if (presstime > 0.15f)
-            {
-                keyPress = false;
-            }
-        }
-
-        else
-        {
-            //키입력시 실행
-            int arr = ArrowDirection();
-            if (arr != 0)
-            {
-                keyPress = true;
-                presstime = 0;
-                SlotSelect(Mathf.Clamp(selectedIndex + arr, 0, slotMaxCount));
-            }
-        }
-    }
 
     //방향키 눌렀을때 이동해야할 인덱스 반환
     protected int ArrowDirection()
@@ -95,10 +69,10 @@ public abstract class InentoryBase<T>: MonoBehaviour
     public abstract void SlotSelect(T slotdata);
 
     //초기화
-    public virtual void Init(List<T> _list_data)
+    public virtual void Init(List<T> list_data)
     {
         selectedIndex = 0;
-        list_itemdata = _list_data;
+        list_itemdata = list_data;
 
         // 슬롯 크기
         slotH = itemSlot.Height;
@@ -133,10 +107,10 @@ public abstract class InentoryBase<T>: MonoBehaviour
         scrollRect.onValueChanged.AddListener(OnScroll);
     }
 
-    //데이터가 업데이트 되었을때
-    public virtual void InventoryLoad(List<T> _list_data)
+    //다시 불러올때
+    public virtual void InventoryLoad(List<T> list_data)
     {
-        list_itemdata = _list_data;
+        list_itemdata = list_data;
 
         poolSize = contentVisibleSlotCount + ( bufferCount * 2 * itemsPerRow );
         int index = -bufferCount * itemsPerRow;
@@ -193,6 +167,8 @@ public abstract class InentoryBase<T>: MonoBehaviour
 
             tmpfirstVisibleIndex = firstVisibleIndex;
         }
+
+        SelectCheck();
     }
 
     // 슬롯의 y값을 이용해 화면에 슬롯이 완전히 표시되지 않을때 슬롯 위치로 이동
@@ -207,22 +183,18 @@ public abstract class InentoryBase<T>: MonoBehaviour
         float value = 1 - ( -_y / ( content_y - scrollrect_y ) );                                                                         // y의 스크롤바 값
         float view_y = -( ( content_y - scrollrect_y - bottomOffset ) * ( 1 - scrollRect.verticalScrollbar.value ) ) - scrollrect_y_half; // 현재 화면의 중심 좌표
 
-        //화면에 슬롯이 100% 나오는지 확인
-        if (_y > view_y + nomoverange || _y < view_y - nomoverange)
+        // 현재 화면보다 슬롯이 위에 있음
+        if (_y >= view_y + nomoverange)
         {
-            // 현재 화면보다 슬롯이 위에 있음
-            if (_y >= view_y)
-            {
-                float rivision = ( objectsize_h / ( content_y - scrollrect_y ) );
-                scrollRect.verticalNormalizedPosition = value + rivision;
-            }
+            float rivision = ( objectsize_h / ( content_y - scrollrect_y ) );
+            scrollRect.verticalNormalizedPosition = value + rivision;
+        }
 
-            // 현재 화면보다 슬롯이 아래에 있음
-            else
-            {
-                float rivision = ( ( scrollrect_y - objectsize_h ) / ( content_y - scrollrect_y ) );
-                scrollRect.verticalNormalizedPosition = value + rivision;
-            }
+        // 현재 화면보다 슬롯이 아래에 있음
+        else if (_y < view_y - nomoverange)
+        {
+            float rivision = ( ( scrollrect_y - objectsize_h ) / ( content_y - scrollrect_y ) );
+            scrollRect.verticalNormalizedPosition = value + rivision;
         }
     }
 
