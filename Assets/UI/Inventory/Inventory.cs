@@ -30,27 +30,10 @@ public class Inventory : InentoryBase<int>
     // wasd로 이동
     protected void KeyInput()
     {
-        if (keyPress)
+        int arr = KeyInputCheck();
+        if (arr != 0)
         {
-            //0.15초 누르면 동작 실행
-            presstime += Time.unscaledDeltaTime;
-
-            if (presstime > 0.15f)
-            {
-                keyPress = false;
-            }
-        }
-
-        else
-        {
-            //키입력시 실행
-            int arr = ArrowDirection();
-            if (arr != 0)
-            {
-                keyPress = true;
-                presstime = 0;
-                SlotSelect(Mathf.Clamp(selectedIndex + arr, 0, slotMaxCount));
-            }
+            SlotSelect(Mathf.Clamp(selectedIndex + arr, 0, slotMaxCount));
         }
     }
 

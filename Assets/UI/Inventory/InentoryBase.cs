@@ -38,29 +38,57 @@ public abstract class InentoryBase<T>: MonoBehaviour
     protected int slotMaxCount = 0;   // 실제 아이템 개수
     protected int selectedIndex = 0;    // 선택된 아이템 리스트 순서
 
-
-
-    //방향키 눌렀을때 이동해야할 인덱스 반환
+    //방향키에 따라 이동해야할 인덱스 반환
     protected int ArrowDirection()
     {
-        if (Input.GetKeyDown(KeyCode.A))
+        if (Input.GetKey(KeyCode.A))
         {
             return -1;
         }
 
-        else if (Input.GetKeyDown(KeyCode.D))
+        else if (Input.GetKey(KeyCode.D))
         {
             return 1;
         }
 
-        else if (Input.GetKeyDown(KeyCode.S))
+        else if (Input.GetKey(KeyCode.S))
         {
             return itemsPerRow;
         }
 
-        else if (Input.GetKeyDown(KeyCode.W))
+        else if (Input.GetKey(KeyCode.W))
         {
             return -itemsPerRow;
+        }
+
+        return 0;
+    }
+
+    //키입력 받았는지 확인
+    protected int KeyInputCheck()
+    {
+        if (keyPress)
+        {
+            //0.15초 누르면 동작 실행
+            presstime += Time.unscaledDeltaTime;
+
+            if (presstime > 0.15f)
+            {
+                keyPress = false;
+                return 0;
+            }
+        }
+
+        else
+        {
+            //키입력시 실행
+            int arr = ArrowDirection();
+            if (arr != 0)
+            {
+                keyPress = true;
+                presstime = 0;
+                return arr;
+            }
         }
 
         return 0;
