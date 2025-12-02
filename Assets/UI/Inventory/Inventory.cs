@@ -6,7 +6,13 @@ public class Inventory : InentoryBase<int>
 {
     [Space]
     [Header("Inventory")]
-    [SerializeField] private int slotCount; // 생성할 슬롯 수
+    [SerializeField]
+    private int slotCount; // 생성할 슬롯 수
+
+    [Space]
+    [Header("Drag&Drop")]
+    [SerializeField]
+    private DragAndDrop dragAndDrop; // Drag&Drop
 
     void Start()
     {
@@ -51,7 +57,19 @@ public class Inventory : InentoryBase<int>
         float targetPos = ( slotdata / itemsPerRow * ( slotH + spacing ) ) + topOffset + ( slotH / 2 );
         ScrollView_ValueCheck(-targetPos);
 
-        //선택된 슬롯 표시
+        //선택된 슬롯 확인하여 표시
         SelectCheck();
+    }
+
+    ///////////////////////////////////////Drag&Drop///////////////////////////////////////
+    public void DragStart(int _index)
+    {
+        dragAndDrop.DragStart(DragState.InventoryStart, -1 , _index );
+        scrollRect.enabled = false;
+    }
+
+    public void DragEnd()
+    {
+        scrollRect.enabled = true;
     }
 }

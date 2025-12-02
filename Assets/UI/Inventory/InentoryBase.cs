@@ -20,7 +20,7 @@ public abstract class InentoryBase<T>: MonoBehaviour
     [Header("ScrollView Option")]
     [SerializeField] protected int itemsPerRow = 1;     //한 줄에 보여줄 아이템 수
     [SerializeField] protected float topOffset;         //스크롤 뷰의 위쪽 여백
-    [SerializeField] protected float bottomOffset;      //스크롤 뷰의 아래쪽 여백
+    [SerializeField] protected float botOffset;         //스크롤 뷰의 아래쪽 여백
     [SerializeField] protected float horizonOffset;     //가로 여백
 
     protected List<SlotBase<T>> list_Slot = new List<SlotBase<T>>();    // 슬롯 리스트
@@ -32,15 +32,15 @@ public abstract class InentoryBase<T>: MonoBehaviour
     protected int contentVisibleSlotCount;                              // 현재 화면에 보이는 슬롯 개수
 
     //네비게이션
-    protected bool keyPress = false;
-    protected float presstime = 0;
+    protected bool keyPress = true;     // 키 입력 받을수 있는 상태인지
+    protected float presstime = 0;      // 키 입력받고 다음 딜레이까지
 
-    protected int slotMaxCount = 0;   // 실제 아이템 개수
+    protected int slotMaxCount = 0;     // 실제 아이템 개수
     protected int selectedIndex = 0;    // 선택된 아이템 리스트 순서
 
-    //방향키에 따라 이동해야할 인덱스 반환
+    //방향키에 따라 이동해야할 인덱스 길이 반환
     protected int ArrowDirection()
-    {
+    {        
         if (Input.GetKey(KeyCode.A))
         {
             return -1;
@@ -67,33 +67,35 @@ public abstract class InentoryBase<T>: MonoBehaviour
     //키입력 받았는지 확인
     protected int KeyInputCheck()
     {
+        //키 입력 받을 수 있는 상태
         if (keyPress)
-        {
-            //0.15초 누르면 동작 실행
-            presstime += Time.unscaledDeltaTime;
-
-            if (presstime > 0.15f)
-            {
-                keyPress = false;
-                return 0;
-            }
-        }
-
-        else
-        {
-            //키입력시 실행
+        {  
+            //키입력시 실행 값을 받고 0이 아니면 실행
             int arr = ArrowDirection();
             if (arr != 0)
             {
-                keyPress = true;
+                keyPress = false;
                 presstime = 0;
                 return arr;
+            }           
+        }
+
+        //키 입력받고 0.15초간 딜레이(ui를 불러 왔을때 timescale이 0이면 unscaledDeltaTime사용)
+        else
+        {            
+            presstime += Time.deltaTime;
+
+            if (presstime > 0.15f)
+            {
+                keyPress = true;
+                return 0;
             }
         }
 
         return 0;
     }
 
+    //슬롯 정보 받아서 선택된 슬롯으로 이동 및 표시
     public abstract void SlotSelect(T slotdata);
 
     //초기화
@@ -108,7 +110,7 @@ public abstract class InentoryBase<T>: MonoBehaviour
 
         // 전체 높이 계산
         int totalRows = Mathf.CeilToInt((float)list_itemdata.Count / itemsPerRow);
-        float contentHeight = slotH * totalRows + ( ( totalRows - 1 ) * spacing ) + topOffset + bottomOffset;
+        float contentHeight = slotH * totalRows + ( ( totalRows - 1 ) * spacing ) + topOffset + botOffset;
 
         //Anchor값 고정(계산 오류 방지)
         contentRect.anchorMax = new Vector2(1f, 1f);
@@ -209,7 +211,7 @@ public abstract class InentoryBase<T>: MonoBehaviour
         float nomoverange = scrollrect_y_half - objectsize_h;                       // 안움직여도 되는 범위
 
         float value = 1 - ( -_y / ( content_y - scrollrect_y ) );                                                                         // y의 스크롤바 값
-        float view_y = -( ( content_y - scrollrect_y - bottomOffset ) * ( 1 - scrollRect.verticalScrollbar.value ) ) - scrollrect_y_half; // 현재 화면의 중심 좌표
+        float view_y = -( ( content_y - scrollrect_y - botOffset ) * ( 1 - scrollRect.verticalScrollbar.value ) ) - scrollrect_y_half; // 현재 화면의 중심 좌표
 
         // 현재 화면보다 슬롯이 위에 있음
         if (_y >= view_y + nomoverange)
@@ -251,7 +253,7 @@ public abstract class InentoryBase<T>: MonoBehaviour
         }
         else
         {
-            item.UpdateSlot(list_itemdata[index]);
+            item.SetDataSlot(list_itemdata[index]);
             item.gameObject.SetActive(true);
         }
     }
@@ -260,11 +262,13 @@ public abstract class InentoryBase<T>: MonoBehaviour
     {
         foreach(SlotBase<T> slot in list_Slot)
         {
-            if(slot.gameObject.activeInHierarchy && slot.SlotData == selectedIndex)
+            // 선택된 슬롯 
+            if (slot.gameObject.activeInHierarchy && slot.SlotIndex == selectedIndex)
             {
                 slot.SlotSelect();
             }
 
+            //선택되지 않은 슬롯
             else
             {
                 slot.SlotNoSelect();
