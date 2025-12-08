@@ -1,6 +1,6 @@
 # ProjectSerke
 
-스킬시스템
+Skill
 
 ScriptableObject 기반 스킬 시스템 + SkillManager + 쿨타임 UI 예제
 
