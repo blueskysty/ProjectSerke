@@ -22,22 +22,23 @@ public class SkillData : ScriptableObject
     public GameObject effectPrefab;   // 이펙트는 Addressable로 바뀌어도 무방
 
     // 실제 동작 정의
-    public virtual void Activate(GameObject player)
+    public virtual void Activate(Player_Skill player)
     {
         Debug.Log($"{skillName} Activate");
 
         switch (skillType)
         {
             case SkillType.Damage:
-                Debug.Log("Damage");
+                Debug.Log($"Damage {power}");
                 break;
 
             case SkillType.Heal:
-                Debug.Log("Heal");
+                player.playerStatus.HPRecovery(power);
+                Debug.Log($"Heal  {power}");
                 break;
 
             case SkillType.Buff:
-                Debug.Log("Buff");
+                Debug.Log($"Buff  {power}");
                 break;
         }
     }

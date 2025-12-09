@@ -16,6 +16,6 @@ MonoBehaviour:
   skillType: 0
   cost: 4
   cooldown: 4
-  power: 0
+  power: 4
   duration: 0
   effectPrefab: {fileID: 0}
