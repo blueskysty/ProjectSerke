@@ -1,5 +1,7 @@
 # ProjectSerke
 
+https://github.com/blueskysty/ProjectSerke/issues/1
+
 ScriptableObject 기반 스킬 시스템
 
 Skill System using ScriptableObject + SkillManager + UI Example
