@@ -1,5 +1,9 @@
 # ProjectSerke
 
+
+https://github.com/user-attachments/assets/5345c162-77be-4f02-9ee1-6d45243bb8cc
+
+
 ScriptableObject 기반 스킬 시스템
 
 이 프로젝트는 ScriptableObject 기반 스킬 데이터 관리,<br>
