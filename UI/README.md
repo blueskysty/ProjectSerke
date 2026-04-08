@@ -1,5 +1,9 @@
 # ProjectSerke
 
+
+https://github.com/user-attachments/assets/a629cf22-db6f-45ae-bd0c-e8106bb1a6c0
+
+
 UI 
 
 재활용 가능한 인벤토리 슬롯(UI) 시스템 구현
