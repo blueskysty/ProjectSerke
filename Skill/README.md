@@ -1,6 +1,6 @@
 # ProjectSerke
 
-https://github.com/blueskysty/ProjectSerke/issues/1
+https://github.com/user-attachments/assets/a44b881c-a431-4def-86ab-3f12db24785b
 
 ScriptableObject 기반 스킬 시스템
 
