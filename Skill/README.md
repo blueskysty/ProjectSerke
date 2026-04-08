@@ -1,7 +1,5 @@
 # ProjectSerke
 
-https://github.com/blueskysty/ProjectSerke/issues/1
-
 ScriptableObject 기반 스킬 시스템
 
 이 프로젝트는 ScriptableObject 기반 스킬 데이터 관리,<br>
