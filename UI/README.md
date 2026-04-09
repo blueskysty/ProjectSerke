@@ -26,7 +26,6 @@ Event-Driven UI Update: Update()를 통한 상시 체크 대신, 데이터 변�
 해결: OnPointerDown과 OnPointerUp 등을 활용해 드래그 시작 전후의 상태를 명확히 구분하여, 버튼 클릭과 드래그 이동이 의도치 않게 겹치는 현상을 방지했습니다.
 
 
-
 DragAndDrop: 드래그 앤 드롭의 전역 상태와 데이터 전송 함수를 총괄하는 매니저.
 DragIcon: 드래그 중인 아이템의 시각적 피드백을 담당하는 오버레이 아이콘.
 DropSlot: IPointer 인터페이스를 통해 드롭 이벤트를 감지하고 데이터를 수신하는 컴포넌트.
