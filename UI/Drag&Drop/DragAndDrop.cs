@@ -4,27 +4,27 @@ using UnityEngine;
 
 public enum DragState
 {
-    None,               // µå·¡±× ÁßÀÌ ¾Æ´Ô
-    InventoryStart,     // ÀÎº¥Åä¸®ÂÊ¿¡¼­ µå·¡±× ½ÃÀÛ
-    DropSlotStart       // µå·Ó½½·Ô¿¡¼­ ½ÃÀÛ
+    None,               // ë“œë˜ê·¸ ì¤‘ì´ ì•„ë‹˜
+    InventoryStart,     // ì¸ë²¤í† ë¦¬ì—ì„œ ë“œë˜ê·¸ ì‹œì‘
+    DropSlotStart       // ë“œë¡­ ìŠ¬ë¡¯ì—ì„œ ë“œë˜ê·¸ ì‹œì‘
 }
 
 
 public class DragAndDrop : MonoBehaviour
 {
     [SerializeField]
-    private List<DropSlot> list_dropSlot;     // ÀÎº¥Åä¸®¿¡¼­ Á¤º¸ ¹ŞÀ» ¼ö ÀÖ´Â slot
+    private List<DropSlot> list_dropSlot;     // ë“œë¡­ ìŠ¬ë¡¯ ë¦¬ìŠ¤íŠ¸
     [SerializeField]
-    private Inventory inventory;              // µå·¡±× ÇÒ ÀÎº¥Åä¸®
+    private Inventory inventory;              // ì¸ë²¤í† ë¦¬
     [SerializeField]
-    private RectTransform dragIcon;           // µå·¡±× Áß Ç¥½ÃÇÑ slotIcon
+    private RectTransform dragIcon;           // ë“œë˜ê·¸ ì¤‘ì¸ ìŠ¬ë¡¯ ì•„ì´ì½˜
 
-    private DragState dragState;              // µå·¡±× »óÅÂ
-    private int dropSlotNumber_dragStart;     // µå¶ø ½½·Ô¿¡¼­ ½ÃÀÛÇßÀ» ¶§ ¹øÈ£
-    private int dropSlotNumber_dragEnd;       // µå·¹±× ³¡³µÀ» ¶§ ¹øÈ£
-    private int inventorySlotData;            // ½½·Ô µ¥ÀÌÅÍ Á¤º¸(ÇöÀç´Â int)
+    private DragState dragState;              // ë“œë˜ê·¸ ìƒíƒœ
+    private int dropSlotNumber_dragStart;     // ë“œë˜ê·¸ ì‹œì‘ ìŠ¬ë¡¯ ë²ˆí˜¸
+    private int dropSlotNumber_dragEnd;       // ë“œë˜ê·¸ ì¢…ë£Œ ìŠ¬ë¡¯ ë²ˆí˜¸
+    private int inventorySlotData;            // ë“œë˜ê·¸ ì¤‘ì¸ ìŠ¬ë¡¯ ë°ì´í„°(ì˜ˆ: int)
 
-    Vector2 screenSize;                       // canvas »çÀÌÁî¿Í ¸ğ´ÏÅÍ »çÀÌÁî·Î ½ºÅ©¸° »çÀÌÁî »ı¼º 
+    Vector2 screenSize;                       // canvas í¬ê¸°ì— ë”°ë¥¸ í™”ë©´ ë¹„ìœ¨
 
     private void Awake()
     {
@@ -40,13 +40,13 @@ public class DragAndDrop : MonoBehaviour
 
     void Update()
     {
-        //µå·¡±× ÁßÀÏ¶§ 
+        // ë“œë˜ê·¸ ì¤‘ì¼ ë•Œ
         if (dragState != DragState.None)
         {
-            //µå·¡±× ¾ÆÀÌÄÜ ¸¶¿ì½º ÁÂÇ¥¿¡ µû¶ó°¡±â
+            // ë“œë˜ê·¸ ì¤‘ì¸ ì•„ì´ì½˜ ìœ„ì¹˜ ê°±ì‹ 
             dragIcon.anchoredPosition3D = new Vector3(Input.mousePosition.x * screenSize.x, Input.mousePosition.y * screenSize.y, 0);
             
-            // µå·¡±× Á¾·á
+            // ë“œë˜ê·¸ ì¢…ë£Œ
             if (Input.GetMouseButtonUp(0))
             {
                 DragEnd();
@@ -54,7 +54,7 @@ public class DragAndDrop : MonoBehaviour
         }            
     }
 
-    // µå·¡±× ½ÃÀÛ
+    // ë“œë˜ê·¸ ì‹œì‘
     public void DragStart(DragState _draggingState, int _startnumber, int _slotdata)
     {
         dragState = _draggingState;
@@ -67,15 +67,15 @@ public class DragAndDrop : MonoBehaviour
         dragIcon.anchoredPosition3D = new Vector3(Input.mousePosition.x * screenSize.x, Input.mousePosition.y * screenSize.y, 0);
     }
 
-    // µå·¡±× Á¾·á
+    // ë“œë˜ê·¸ ì¢…ë£Œ
     public void DragEnd()
-    {        
-        //ÀÎº¥Åä¸®¿¡¼­ ½ÃÀÛÇßÀ»¶§
+    {
+        //ì¸ë²¤í† ë¦¬ì—ì„œ ì‹œì‘í–ˆì„ë•Œ
         if (dragState == DragState.InventoryStart)
         {
             if (dropSlotNumber_dragEnd >= 0)
             {
-                // ½½·Ô¿¡ µ¥ÀÌÅÍ°¡ ÀÖÀ» °æ¿ì ºñ¿ì±â
+                // ìŠ¬ë¡¯ì— ë°ì´í„°ê°€ ìˆì„ ê²½ìš° ë¹„ìš°ê¸°
                 foreach (DropSlot slot in list_dropSlot)
                 {
                     if (slot.DataCheck_Duplication(inventorySlotData))
@@ -87,19 +87,19 @@ public class DragAndDrop : MonoBehaviour
             }            
         }
 
-        //µå·Ó½½·Ô¿¡¼­ ½ÃÀÛÇßÀ»¶§
+        // ë“œë¡­ ìŠ¬ë¡¯ì—ì„œ ì‹œì‘í–ˆì„ ë•Œ
         else if (dragState == DragState.DropSlotStart)
         {
             list_dropSlot[dropSlotNumber_dragStart].InitData();
 
-            // µå·Ó ½½·Ô¿¡ µå·Ó ÇßÀ»¶§¸¸ Á¤º¸ ÀÌµ¿
-            if(dropSlotNumber_dragEnd >= 0)
+            // ë“œë¡­ ìŠ¬ë¡¯ì— ë“œë¡­ í–ˆì„ë•Œë§Œ ì •ë³´ ì´ë™
+            if (dropSlotNumber_dragEnd >= 0)
             {
                 list_dropSlot[dropSlotNumber_dragEnd].SetData(inventorySlotData);
             }
         }
 
-        //µå·¡±× ÃÊ±âÈ­
+        // ë“œë˜ê·¸ ìƒíƒœ ì´ˆê¸°í™”
         dragState = DragState.None;
         dropSlotNumber_dragStart = -1;
         dropSlotNumber_dragEnd = -1;
@@ -112,7 +112,7 @@ public class DragAndDrop : MonoBehaviour
 
     public void DropSlotEnterExit(bool _enter, int _endnumber)
     {
-        // µå·Ó½½·Ô¿¡ µé¾î¿À°Å³ª ³ª°¥¶§( µå·¡±× ÁßÀÏ¶§¸¸ µ¿ÀÛÇÏµµ·Ï)
+        // ë“œë¡­ ìŠ¬ë¡¯ì— ë§ˆìš°ìŠ¤ê°€ ë“¤ì–´ì˜¤ê±°ë‚˜ ë‚˜ê°ˆ ë•Œ í˜¸ì¶œ (ë“œë˜ê·¸ ì¤‘ì¼ ë•Œë§Œ ì²˜ë¦¬)
         if (dragState != DragState.None)
         {
             if (_enter)

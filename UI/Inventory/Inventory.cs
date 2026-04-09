@@ -7,7 +7,7 @@ public class Inventory : InentoryBase<int>
     [Space]
     [Header("Inventory")]
     [SerializeField]
-    private int slotCount; // »ı¼ºÇÒ ½½·Ô ¼ö
+    private int slotCount; // ìƒì„±í•  ìŠ¬ë¡¯ ìˆ˜
 
     [Space]
     [Header("Drag&Drop")]
@@ -18,13 +18,13 @@ public class Inventory : InentoryBase<int>
     {
         List<int> dataList = new List<int>();
 
-        // ½½·Ô ¼ö¿¡ ¸ÂÃç µ¥ÀÌÅÍ ¸®½ºÆ®¸¦ ÃÊ±âÈ­
+        // ìŠ¬ë¡¯ ìˆ˜ì— ë§ì¶° ë°ì´í„° ë¦¬ìŠ¤íŠ¸ë¥¼ ì´ˆê¸°í™” 
         for (int i = 0; i < slotCount; i++)
         {
-            dataList.Add(i); // 0ºÎÅÍ slotCount±îÁöÀÇ ¼ıÀÚ¸¦ Ãß°¡
+            dataList.Add(i); // 0ë¶€í„° slotCountê¹Œì§€ì˜ ìˆ«ìë¥¼ ì¶”ê°€
         }
 
-        // ÀÎº¥Åä¸® ÃÊ±âÈ­
+        // ì¸ë²¤í† ë¦¬ ì´ˆê¸°í™”
         Init(dataList);
     }
 
@@ -33,7 +33,7 @@ public class Inventory : InentoryBase<int>
         KeyInput();
     }
 
-    // wasd·Î ÀÌµ¿
+    // wasdë¡œ ì¸ë²¤í† ë¦¬ ìŠ¬ë¡œ ì´ë™
     protected void KeyInput()
     {
         int arr = KeyInputCheck();
@@ -50,14 +50,14 @@ public class Inventory : InentoryBase<int>
             return;
         }
 
-        //¼±ÅÃµÈ ÀÎµ¦½º ÀÔ·Â
+        //ì„ íƒëœ ì¸ë±ìŠ¤ ì…ë ¥
         selectedIndex = slotdata;
 
-        // ½ºÅ©·Ñ À§Ä¡ Á¶Á¤
+        // ìŠ¤í¬ë¡¤ ìœ„ì¹˜ ì¡°ì •
         float targetPos = ( slotdata / itemsPerRow * ( slotH + spacing ) ) + topOffset + ( slotH / 2 );
         ScrollView_ValueCheck(-targetPos);
 
-        //¼±ÅÃµÈ ½½·Ô È®ÀÎÇÏ¿© Ç¥½Ã
+        //ì„ íƒëœ ìŠ¬ë¡¯ í™•ì¸í•˜ì—¬ í‘œì‹œ
         SelectCheck();
     }
 

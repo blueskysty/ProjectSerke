@@ -7,15 +7,14 @@ using UnityEngine.UI;
 
 public class Slot1 : SlotBase<int>, IPointerDownHandler, IPointerUpHandler
 {
-    [SerializeField] private Text text_Id;          // ½½·Ô¿¡ Ç¥½ÃÇÒ ÅØ½ºÆ®
-    [SerializeField] private Inventory inventory;   // ¼ÓÇØÀÖ´Â ÀÎº¥Åä¸®
+    [SerializeField] private Text text_Id;          // ìŠ¬ë¡¯ì— í‘œì‹œí•  í…ìŠ¤íŠ¸
+    [SerializeField] private Inventory inventory;   // ì†í•´ìˆëŠ” ì¸ë²¤í† ë¦¬
 
-    // µå·¡±× °¨Áö
-    bool clickDown;
+    bool clickDown;    // í´ë¦­ ìƒíƒœ
     float dragdis;
     Vector2 startPos;
 
-    // ½½·Ô ÃÊ±âÈ­ (ÇÊ¿ä ½Ã Ãß°¡ ¼³Á¤ °¡´É)
+    // ì´ˆê¸°í™” (ìŠ¬ë¡¯ ì´ˆê¸°í™” ì‹œ í˜¸ì¶œ)
     public override void Init()
     {
         clickDown = false;
@@ -34,27 +33,24 @@ public class Slot1 : SlotBase<int>, IPointerDownHandler, IPointerUpHandler
         }
     }
 
-    // ½½·Ô Á¤º¸ ÀÔ·Â
+    // ìŠ¬ë¡¯ ë°ì´í„° ì„¤ì •
     public override void SetDataSlot(int _index)
     {
-        //¾ÆÀÌµğ ÀúÀå ¹× Ç¥½Ã
-        text_Id.text = _index.ToString();
+        text_Id.text = _index.ToString();   // ìŠ¬ë¡¯ì— í…ìŠ¤íŠ¸ í‘œì‹œ
         SlotIndex = _index;
     }
 
     public override void SlotSelect()
-    {
-        //¼±ÅÃµÇ¸é ºÓÀº»öÀ¸·Î
-        text_Id.color = Color.red;
+    {        
+        text_Id.color = Color.red;  // ìŠ¬ë¡¯ì´ ì„ íƒë˜ì—ˆì„ ë•Œ ë¶‰ì€ìƒ‰ìœ¼ë¡œ
     }
 
     public override void SlotNoSelect()
-    {
-        //¼±ÅÃµÇÁö ¾ÊÀ¸¸é °ËÀº»öÀ¸·Î
-        text_Id.color = Color.black;
+    {        
+        text_Id.color = Color.black;  // ìŠ¬ë¡¯ì´ ì„ íƒë˜ì§€ ì•Šì•˜ì„ ë•Œ ê²€ì€ìƒ‰ìœ¼ë¡œ
     }
 
-    //¹öÆ° Å¬¸¯ÇßÀ»¶§ ÀÎº¥Åä¸®¿¡ ½Å°í
+    // ë²„íŠ¼ í´ë¦­ ì‹œ í˜¸ì¶œ
     public void ButtonClick()
     {
         inventory.SlotSelect(SlotIndex);

@@ -4,7 +4,7 @@ public abstract class SlotBase<T>: MonoBehaviour
 {
     [SerializeField]
     protected RectTransform _rectTransform;
-    protected int slotIndex;                       //½½·Ô ÀÎµ¦½º
+    protected int slotIndex;                       //ìŠ¬ë¡¯ ì¸ë±ìŠ¤
 
     public int SlotIndex
     {
@@ -22,11 +22,11 @@ public abstract class SlotBase<T>: MonoBehaviour
     public float Height => _rectTransform.rect.height;
     public float Width => _rectTransform.rect.width;
 
-    public abstract void Init();                //ÃÊ±âÈ­
+    public abstract void Init();                //ì´ˆê¸°í™”
 
-    public abstract void SetDataSlot(T data);   //Á¤º¸ ÀÔ·Â ¹Ş°í ÀÌ¹ÌÁö³ª ÅØ½ºÆ®·Î Ç¥±â
+    public abstract void SetDataSlot(T data);   //ì •ë³´ ì…ë ¥ ë°›ê³  ì´ë¯¸ì§€ë‚˜ í…ìŠ¤íŠ¸ë¡œ í‘œê¸°
 
-    public abstract void SlotSelect();          //½½·ÔÀÌ ¼±ÅÃµÇ¾úÀ» ¶§ 
+    public abstract void SlotSelect();          //ìŠ¬ë¡¯ì´ ì„ íƒë˜ì—ˆì„ ë•Œ í˜¸ì¶œ
 
-    public abstract void SlotNoSelect();        //½½·ÔÀÌ ¼±ÅÃµÇÁö ¾Ê¾ÒÀ» ¶§
+    public abstract void SlotNoSelect();        //ìŠ¬ë¡¯ì´ ì„ íƒë˜ì§€ ì•Šì•˜ì„ ë•Œ í˜¸ì¶œ
 }

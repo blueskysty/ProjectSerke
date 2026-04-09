@@ -7,20 +7,19 @@ using UnityEngine.EventSystems;
 public class DropSlot:MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
 {
     [SerializeField]
-    protected Text text_Id;             // ½½·Ô Ç¥½Ã
+    protected Text text_Id;             // ìŠ¬ë¡¯ í‘œì‹œ
 
     [SerializeField]
     protected DragAndDrop dragAndDrop;  
 
-    protected int slotId;       // ½½·Ô id
+    protected int slotId;       // ìŠ¬ë¡¯ id
     private int slotIndex;
-
-    // µå·¡±× °¨Áö
-    bool clickDown;
+        
+    bool clickDown; // ë“œë˜ê·¸ ê°ì§€
     float dragdis;
     Vector2 startPos;
 
-    // ½½·Ô ¹øÈ£ ÀÔ·Â°ú ÃÊ±âÈ­
+    // ìŠ¬ë¡¯ ë²ˆí˜¸ ì…ë ¥ ì´ˆê¸°í™”
     public void Init(int _index)
     {
         slotIndex = _index;
@@ -39,15 +38,14 @@ public class DropSlot:MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, 
         }
     }
 
-
-    // ½½·Ô µ¥ÀÌÅÍ ÃÊ±âÈ­ 
+    // ìŠ¬ë¡¯ ë°ì´í„° ì´ˆê¸°í™”
     public void InitData()
     {
         slotId = -1;
         text_Id.text = "Empty";
     }
 
-    // ½½·Ô µ¥ÀÌÅÍ ÀÔ·Â
+    // ìŠ¬ë¡¯ ë°ì´í„° ì…ë ¥
     public void SetData(int _data)
     {
         slotId = _data;
@@ -77,8 +75,8 @@ public class DropSlot:MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, 
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        // µ¥ÀÌÅÍ°¡ ¾øÀ¸¸é µ¿ÀÛ ¾ÈÇÏµµ·Ï
-        if(slotId != -1)
+        // ë°ì´í„°ê°€ ì—†ìœ¼ë©´ ë™ì‘ ì•ˆí•˜ë„ë¡
+        if (slotId != -1)
         {
             startPos = eventData.position;
             clickDown = true;

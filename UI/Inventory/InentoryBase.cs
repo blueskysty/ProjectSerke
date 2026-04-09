@@ -13,32 +13,31 @@ public abstract class InentoryBase<T>: MonoBehaviour
 
     [Space]
     [Header("Option")]
-    [SerializeField] protected int bufferCount = 5; //Ãß°¡ÀûÀ¸·Î ¹Ì¸® ·ÎµåÇÒ ½½·ÔÀÇ °³¼ö
-    [SerializeField] protected float spacing;       //¾ÆÀÌÅÛ °£ÀÇ °£°İ
+    [SerializeField] protected int bufferCount = 5; //ì¶”ê°€ì ìœ¼ë¡œ ë¯¸ë¦¬ ë¡œë“œí•  ìŠ¬ë¡¯ì˜ ê°œìˆ˜
+    [SerializeField] protected float spacing;       //ì•„ì´í…œ ê°„ì˜ ê°„ê²©
 
     [Space]
     [Header("ScrollView Option")]
-    [SerializeField] protected int itemsPerRow = 1;     //ÇÑ ÁÙ¿¡ º¸¿©ÁÙ ¾ÆÀÌÅÛ ¼ö
-    [SerializeField] protected float topOffset;         //½ºÅ©·Ñ ºäÀÇ À§ÂÊ ¿©¹é
-    [SerializeField] protected float botOffset;         //½ºÅ©·Ñ ºäÀÇ ¾Æ·¡ÂÊ ¿©¹é
-    [SerializeField] protected float horizonOffset;     //°¡·Î ¿©¹é
+    [SerializeField] protected int itemsPerRow = 1;     //í•œ ì¤„ì— ë³´ì—¬ì¤„ ì•„ì´í…œ ìˆ˜
+    [SerializeField] protected float topOffset;         //ìŠ¤í¬ë¡¤ ë·°ì˜ ìœ„ìª½ ì—¬ë°±
+    [SerializeField] protected float botOffset;         //ìŠ¤í¬ë¡¤ ë·°ì˜ ì•„ë˜ìª½ ì—¬ë°±
+    [SerializeField] protected float horizonOffset;     //ê°€ë¡œ ì—¬ë°±
 
-    protected List<SlotBase<T>> list_Slot = new List<SlotBase<T>>();    // ½½·Ô ¸®½ºÆ®
-    protected List<T> list_itemdata = new List<T>();                    // µ¥ÀÌÅÍ ¸®½ºÆ®
-    protected float slotH;                                              // ½½·ÔÀÇ ³ôÀÌ
-    protected float slotW;                                              // ½½·ÔÀÇ ³Êºñ
-    protected int poolSize;                                             // Àç»ç¿ëÇÒ ½½·ÔÀÇ ¼ö
-    protected int tmpfirstVisibleIndex;                                 // ÇöÀç Ã¹ ¹øÂ°·Î º¸ÀÌ´Â ¾ÆÀÌÅÛÀÇ ÀÎµ¦½º
-    protected int contentVisibleSlotCount;                              // ÇöÀç È­¸é¿¡ º¸ÀÌ´Â ½½·Ô °³¼ö
+    protected List<SlotBase<T>> list_Slot = new List<SlotBase<T>>();    // ìŠ¬ë¡¯ ë¦¬ìŠ¤íŠ¸
+    protected List<T> list_itemdata = new List<T>();                    // ë°ì´í„° ë¦¬ìŠ¤íŠ¸
+    protected float slotH;                                              // ìŠ¬ë¡¯ì˜ ë†’ì´
+    protected float slotW;                                              // ìŠ¬ë¡¯ì˜ ë„ˆë¹„
+    protected int poolSize;                                             // ìŠ¬ë¡¯ í’€ì˜ í¬ê¸°
+    protected int tmpfirstVisibleIndex;                                 // ì„ì‹œ ì²« ë²ˆì§¸ë¡œ ë³´ì´ëŠ” ìŠ¬ë¡¯ì˜ ì¸ë±ìŠ¤
+    protected int contentVisibleSlotCount;                              // í™”ë©´ì— ë³´ì´ëŠ” ìŠ¬ë¡¯ ê°œìˆ˜
 
-    //³×ºñ°ÔÀÌ¼Ç
-    protected bool keyPress = true;     // Å° ÀÔ·Â ¹ŞÀ»¼ö ÀÖ´Â »óÅÂÀÎÁö
-    protected float presstime = 0;      // Å° ÀÔ·Â¹Ş°í ´ÙÀ½ µô·¹ÀÌ±îÁö
+    //í‚¤ ì…ë ¥ ê´€ë ¨
+    protected bool keyPress = true;     // í‚¤ ì…ë ¥ì´ ê°€ëŠ¥í•œ ìƒíƒœì¸ì§€ ì—¬ë¶€
+    protected float presstime = 0;      // í‚¤ ì…ë ¥ í›„ ê²½ê³¼ ì‹œê°„
+    protected int slotMaxCount = 0;     // ìŠ¬ë¡¯ ìµœëŒ€ ê°œìˆ˜
+    protected int selectedIndex = 0;    // ì„ íƒëœ ìŠ¬ë¡¯ì˜ ì¸ë±ìŠ¤
 
-    protected int slotMaxCount = 0;     // ½ÇÁ¦ ¾ÆÀÌÅÛ °³¼ö
-    protected int selectedIndex = 0;    // ¼±ÅÃµÈ ¾ÆÀÌÅÛ ¸®½ºÆ® ¼ø¼­
-
-    //¹æÇâÅ°¿¡ µû¶ó ÀÌµ¿ÇØ¾ßÇÒ ÀÎµ¦½º ±æÀÌ ¹İÈ¯
+    //í‚¤ ì…ë ¥ ë°©í–¥ ë°˜í™˜
     protected int ArrowDirection()
     {        
         if (Input.GetKey(KeyCode.A))
@@ -64,13 +63,13 @@ public abstract class InentoryBase<T>: MonoBehaviour
         return 0;
     }
 
-    //Å°ÀÔ·Â ¹Ş¾Ò´ÂÁö È®ÀÎ
+    //í‚¤ ì…ë ¥ ì²´í¬
     protected int KeyInputCheck()
     {
-        //Å° ÀÔ·Â ¹ŞÀ» ¼ö ÀÖ´Â »óÅÂ
+        //í‚¤ ì…ë ¥ì´ ê°€ëŠ¥í•œ ìƒíƒœì¸ì§€ ì—¬ë¶€
         if (keyPress)
         {  
-            //Å°ÀÔ·Â½Ã ½ÇÇà °ªÀ» ¹Ş°í 0ÀÌ ¾Æ´Ï¸é ½ÇÇà
+            //í‚¤ ì…ë ¥ ë°©í–¥ ë°˜í™˜
             int arr = ArrowDirection();
             if (arr != 0)
             {
@@ -80,7 +79,7 @@ public abstract class InentoryBase<T>: MonoBehaviour
             }           
         }
 
-        //Å° ÀÔ·Â¹Ş°í 0.15ÃÊ°£ µô·¹ÀÌ(ui¸¦ ºÒ·¯ ¿ÔÀ»¶§ timescaleÀÌ 0ÀÌ¸é unscaledDeltaTime»ç¿ë)
+        //í‚¤ ì…ë ¥ í›„ ê²½ê³¼ ì‹œê°„ ì²´í¬
         else
         {            
             presstime += Time.deltaTime;
@@ -95,28 +94,28 @@ public abstract class InentoryBase<T>: MonoBehaviour
         return 0;
     }
 
-    //½½·Ô Á¤º¸ ¹Ş¾Æ¼­ ¼±ÅÃµÈ ½½·ÔÀ¸·Î ÀÌµ¿ ¹× Ç¥½Ã
+    //ìŠ¬ë¡¯ ì„ íƒ
     public abstract void SlotSelect(T slotdata);
 
-    //ÃÊ±âÈ­
+    //ì´ˆê¸°í™”
     public virtual void Init(List<T> list_data)
     {
         selectedIndex = 0;
         list_itemdata = list_data;
 
-        // ½½·Ô Å©±â
+        // ìŠ¬ë¡¯ í¬ê¸°
         slotH = itemSlot.Height;
         slotW = itemSlot.Width;
 
-        // ÀüÃ¼ ³ôÀÌ °è»ê
+        // ì „ì²´ í–‰ ìˆ˜ ê³„ì‚°
         int totalRows = Mathf.CeilToInt((float)list_itemdata.Count / itemsPerRow);
         float contentHeight = slotH * totalRows + ( ( totalRows - 1 ) * spacing ) + topOffset + botOffset;
 
-        //Anchor°ª °íÁ¤(°è»ê ¿À·ù ¹æÁö)
+        //Anchor ì„¤ì •(ìœ„ìª½ ê³ ì •)
         contentRect.anchorMax = new Vector2(1f, 1f);
         contentRect.anchorMin = new Vector2(0f, 1f);
 
-        //contentRectÀÇ ³ôÀÌ °è»ê
+        //contentRect í¬ê¸° ê³„ì‚°
         contentVisibleSlotCount = (int)( scrollRect.GetComponent<RectTransform>().rect.height / slotH ) * itemsPerRow;
         contentRect.sizeDelta = new Vector2(contentRect.sizeDelta.x, contentHeight);
 
@@ -137,7 +136,7 @@ public abstract class InentoryBase<T>: MonoBehaviour
         scrollRect.onValueChanged.AddListener(OnScroll);
     }
 
-    //´Ù½Ã ºÒ·¯¿Ã¶§
+    //ì¸ë²¤í† ë¦¬ ë¡œë“œ
     public virtual void InventoryLoad(List<T> list_data)
     {
         list_itemdata = list_data;
@@ -157,16 +156,16 @@ public abstract class InentoryBase<T>: MonoBehaviour
     {
         float contentY = contentRect.anchoredPosition.y;
 
-        //ÇöÀç ÀÎµ¦½º À§Ä¡ °è»ê 
+        //ì²« ë²ˆì§¸ ë³´ì´ëŠ” í–‰ì˜ ì¸ë±ìŠ¤ ê³„ì‚°
         int firstVisibleRowIndex = Mathf.Max(0, Mathf.FloorToInt(contentY / ( slotH + spacing )));
         int firstVisibleIndex = firstVisibleRowIndex * itemsPerRow;
 
-        // ¸¸¾à ÀÌÀü À§Ä¡¿Í ÇöÀç À§Ä¡°¡ ´Ş¶óÁ³´Ù¸é ½½·Ô Àç¹èÄ¡
+        // ì´ì „ ì²« ë²ˆì§¸ ë³´ì´ëŠ” ì¸ë±ìŠ¤ì™€ í˜„ì¬ ì²« ë²ˆì§¸ ë³´ì´ëŠ” ì¸ë±ìŠ¤ê°€ ë‹¤ë¥´ë©´ ìŠ¬ë¡¯ ì—…ë°ì´íŠ¸
         if (tmpfirstVisibleIndex != firstVisibleIndex)
         {
             int index = ( tmpfirstVisibleIndex - firstVisibleIndex ) / itemsPerRow;
 
-            // ÇöÀç ÀÎµ¦½º°¡ Å­
+            // ìŠ¬ë¡¯ ì—…ë°ì´íŠ¸(í˜„ì¬ ì¸ë±ìŠ¤ê°€ ì‘ìŒ)
             if (index < 0)
             {
                 int lastVisibleIndex = tmpfirstVisibleIndex + contentVisibleSlotCount;
@@ -181,7 +180,7 @@ public abstract class InentoryBase<T>: MonoBehaviour
                 }
             }
 
-            // ÇöÀç ÀÎµ¦½º°¡ ÀÛÀ½
+            // ìŠ¬ë¡¯ ì—…ë°ì´íŠ¸(í˜„ì¬ ì¸ë±ìŠ¤ê°€ í¼)
             else if (index > 0)
             {
                 for (int i = 0, cnt = Mathf.Abs(index) * itemsPerRow; i < cnt; i++)
@@ -200,27 +199,27 @@ public abstract class InentoryBase<T>: MonoBehaviour
 
         SelectCheck();
     }
-
-    // ½½·ÔÀÇ y°ªÀ» ÀÌ¿ëÇØ È­¸é¿¡ ½½·ÔÀÌ ¿ÏÀüÈ÷ Ç¥½ÃµÇÁö ¾ÊÀ»¶§ ½½·Ô À§Ä¡·Î ÀÌµ¿
+    
+    // ìŠ¤í¬ë¡¤ yê°’ì— ë”°ë¼ í™”ë©´ì— ë³´ì´ëŠ” ìŠ¬ë¡¯ ìœ„ì¹˜ë¥¼ ì¡°ì •
     protected void ScrollView_ValueCheck(float _y)
     {
-        float content_y = contentRect.sizeDelta.y;                                  // ÀÎº¥Åä¸® ÀüÃ¼»çÀÌÁî
-        float scrollrect_y = scrollRect.GetComponent<RectTransform>().sizeDelta.y;  // ÀÎº¥Åä¸® »çÀÌÁî
-        float scrollrect_y_half = scrollrect_y * 0.5f;                              // ÀÎº¥Åä¸® Àı¹İ »çÀÌÁî
-        float objectsize_h = ( slotH + spacing ) * 0.5f;                            // ½½·Ô + ½½·Ô °£°İ Àı¹İ ³ôÀÌ
-        float nomoverange = scrollrect_y_half - objectsize_h;                       // ¾È¿òÁ÷¿©µµ µÇ´Â ¹üÀ§
+        float content_y = contentRect.sizeDelta.y;                                  // ì»¨í…ì¸  ì „ì²´ ë†’ì´
+        float scrollrect_y = scrollRect.GetComponent<RectTransform>().sizeDelta.y;  // ìŠ¤í¬ë¡¤ë·° ë†’ì´
+        float scrollrect_y_half = scrollrect_y * 0.5f;                              // ìŠ¤í¬ë¡¤ë·° ì ˆë°˜ ë†’ì´
+        float objectsize_h = ( slotH + spacing ) * 0.5f;                            // ìŠ¬ë¡¯ + ê°„ê²© ì ˆë°˜ ë†’ì´
+        float nomoverange = scrollrect_y_half - objectsize_h;                       // ì›€ì§ì´ì§€ ì•ŠëŠ” ë²”ìœ„
 
-        float value = 1 - ( -_y / ( content_y - scrollrect_y ) );                                                                         // yÀÇ ½ºÅ©·Ñ¹Ù °ª
-        float view_y = -( ( content_y - scrollrect_y - botOffset ) * ( 1 - scrollRect.verticalScrollbar.value ) ) - scrollrect_y_half; // ÇöÀç È­¸éÀÇ Áß½É ÁÂÇ¥
+        float value = 1 - ( -_y / ( content_y - scrollrect_y ) );                                                                         // yê°’ ê³„ì‚°
+        float view_y = -( ( content_y - scrollrect_y - botOffset ) * ( 1 - scrollRect.verticalScrollbar.value ) ) - scrollrect_y_half;    // í™”ë©´ì˜ ìœ„ì¹˜ ê³„ì‚°
 
-        // ÇöÀç È­¸éº¸´Ù ½½·ÔÀÌ À§¿¡ ÀÖÀ½
+        // í˜„ì¬ í™”ë©´ë³´ë‹¤ ìŠ¬ë¡¯ì´ ìœ„ì— ìˆìŒ
         if (_y >= view_y + nomoverange)
         {
             float rivision = ( objectsize_h / ( content_y - scrollrect_y ) );
             scrollRect.verticalNormalizedPosition = value + rivision;
         }
 
-        // ÇöÀç È­¸éº¸´Ù ½½·ÔÀÌ ¾Æ·¡¿¡ ÀÖÀ½
+        // í˜„ì¬ í™”ë©´ë³´ë‹¤ ìŠ¬ë¡¯ì´ ì•„ë˜ì— ìˆìŒ
         else if (_y < view_y - nomoverange)
         {
             float rivision = ( ( scrollrect_y - objectsize_h ) / ( content_y - scrollrect_y ) );
@@ -230,11 +229,11 @@ public abstract class InentoryBase<T>: MonoBehaviour
 
     protected void UpdateSlot(SlotBase<T> item, int index)
     {
-        //ÇöÀç IndexÀÇ Çà°ú ¿­À» °è»ê
+        // ì¸ë±ìŠ¤ì— ë”°ë¥¸ í–‰ê³¼ ì—´ ê³„ì‚°
         int row = 0 <= index ? index / itemsPerRow : ( index - 1 ) / itemsPerRow;
         int column = Mathf.Abs(index) % itemsPerRow;
 
-        // XÃà ¹× YÃà À§Ä¡ °è»ê (°¡·Î¸¦ ±âÁØÀ¸·Î Áß¾Ó Á¤·Ä ¹× ÇÇ¹ş º¸Á¤)
+        // Xì™€ Y ìœ„ì¹˜ ê³„ì‚° (ìŠ¬ë¡¯ì˜ í”¼ë²—ì„ ê³ ë ¤í•˜ì—¬ ìœ„ì¹˜ ì¡°ì •)
         Vector2 pivot = item.RectTransform.pivot;
         float totalWidth = ( itemsPerRow * ( slotW + spacing ) ) - spacing;
         float contentWidth = contentRect.rect.width;
@@ -245,7 +244,7 @@ public abstract class InentoryBase<T>: MonoBehaviour
         adjustedY -= topOffset;
         item.RectTransform.localPosition = new Vector3(adjustedX, adjustedY, 0);
 
-        //Index°¡ ÀÔ·ÂµÈ DataListÀÇ Å©±â¸¦ ³Ñ¾î°¡°Å³ª 0¹Ì¸¸ÀÌ¸é ½½·ÔÀ» ²ô°í Update¸¦ ÁøÇàÇÏÁö ¾Ê´Â´Ù.
+        // ì¸ë±ìŠ¤ê°€ ë°ì´í„° ë¦¬ìŠ¤íŠ¸ì˜ ë²”ìœ„ë¥¼ ë²—ì–´ë‚˜ë©´ ìŠ¬ë¡¯ì„ ë¹„í™œì„±í™”
         if (index < 0 || index >= list_itemdata.Count)
         {
             item.gameObject.SetActive(false);
@@ -262,13 +261,13 @@ public abstract class InentoryBase<T>: MonoBehaviour
     {
         foreach(SlotBase<T> slot in list_Slot)
         {
-            // ¼±ÅÃµÈ ½½·Ô 
-            if (slot.gameObject.activeInHierarchy && slot.SlotIndex == selectedIndex)
+            // ì„ íƒëœ ìŠ¬ë¡¯ í™•ì¸
+            if (slot.SlotIndex == selectedIndex && slot.gameObject.activeSelf)
             {
                 slot.SlotSelect();
             }
 
-            //¼±ÅÃµÇÁö ¾ÊÀº ½½·Ô
+            // ì„ íƒë˜ì§€ ì•Šì€ ìŠ¬ë¡¯ í™•ì¸
             else
             {
                 slot.SlotNoSelect();
