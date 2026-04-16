@@ -1,5 +1,9 @@
 # ProjectSerke
 
+
+https://github.com/user-attachments/assets/263cca82-2f0d-40e3-ba46-849230d8ad2e
+
+
 UI 
 
 이 프로젝트는 **오브젝트 풀링(Object Pooling)**과 **유니티 이벤트 인터페이스(Event Interfaces)**를 활용하여 성능과 UX를 동시에 잡은 범용 UI 시스템입니다. 인벤토리, 장착창, 단축바 등 다양한 UI 환경에서 즉시 재사용이 가능하도록 설계되었습니다.
