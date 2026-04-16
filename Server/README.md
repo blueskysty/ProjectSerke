@@ -2,8 +2,6 @@ Unity Netcode for GameObjects를 기반으로 한 서버 및 네트워크 관리
 =======
 https://github.com/user-attachments/assets/c7db0d45-54cb-407e-a2e5-5c20f695db31
 
-Unity Netcode for GameObjects를 기반으로 한 서버 및 네트워크 관리 모듈입니다.
-
 1 권한 기반 제어 (Authority Management)<br>
 Client Authority: ClientNetworkTransform과 OwnerNetworkAnimator를 사용하여 서버의 확인을 기다리지 않고 소유자(Owner)가 즉시 이동과 애니메이션을 실행하도록 설정(조작 지연 해제).<br>
 Server Authoritative: 데미지 판정, 스킬 생성, 플레이어 스탯 수정은 반드시 서버(IsServer)에서만 실행되도록 설계하여 클라이언트의 변조(핵) 방지.
