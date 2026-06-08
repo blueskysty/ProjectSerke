@@ -1,11 +1,11 @@
 using UnityEngine;
 using System.Threading.Tasks;
-using System.Diagnostics; // ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+using System.Diagnostics; // ½Ã°£ ÃøÁ¤¿ë
 using System.Collections.Generic;
 
 public class BenchmarkTester: MonoBehaviour
 {
-    // ï¿½×½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½)
+    // Å×½ºÆ®¿ë °¡»ó µ¥ÀÌÅÍ (µ¥ÀÌÅÍ°¡ Å¬¼ö·Ï °ÝÂ÷°¡ ¶Ñ·ÇÇØÁý´Ï´Ù)
     private const int DATA_COUNT = 10000000;
 
     void Start()
@@ -15,51 +15,51 @@ public class BenchmarkTester: MonoBehaviour
 
     void Update()
     {
-        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½å°¡ ï¿½ï¿½ï¿½ß¸ï¿½ ï¿½ï¿½ È¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ò¶ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
+        // ¸ÞÀÎ ½º·¹µå°¡ ¸ØÃß¸é ÀÌ È¸ÀüÀÌ ¶Ò¶Ò ²÷±é´Ï´Ù.
         transform.Rotate(0, 100 * Time.deltaTime, 0);
     }
 
     async void RunBenchmark()
     {
-        //  3ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½Å© ï¿½×½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+        //  3ÃÊ ´ë±âÈÄ º¥Ä¡¸¶Å© Å×½ºÆ® ½ÃÀÛ
         await Task.Delay(3000);
 
-        UnityEngine.Debug.Log("--- ï¿½ï¿½Ä¡ï¿½ï¿½Å© ï¿½×½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ---");
+        UnityEngine.Debug.Log("--- º¥Ä¡¸¶Å© Å×½ºÆ® ½ÃÀÛ ---");
 
-        // 1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½×½ï¿½Æ® (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+        // 1. µ¿±â ¹æ½Ä Å×½ºÆ® (¸ÞÀÎ ½º·¹µå Á¡À¯)
         Stopwatch sw = new Stopwatch();
         sw.Start();
 
-        List<int> syncResult = HeavyParsingTask(); // ï¿½Ä½ï¿½ ï¿½Û¾ï¿½ ï¿½ï¿½ï¿½ï¿½
+        List<int> syncResult = HeavyParsingTask(); // ÆÄ½Ì ÀÛ¾÷ ¼öÇà
 
         sw.Stop();
-        UnityEngine.Debug.Log($"[ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½] ï¿½Ò¿ï¿½ ï¿½Ã°ï¿½: {sw.ElapsedMilliseconds}ms (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å·ï¿½ï¿½)");
+        UnityEngine.Debug.Log($"[µ¿±â ¹æ½Ä] ¼Ò¿ä ½Ã°£: {sw.ElapsedMilliseconds}ms (¸ÞÀÎ ½º·¹µå ºí·ÎÅ·µÊ)");
 
         sw.Reset();
 
-        //  3ï¿½ï¿½ ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
-        // await Task.Delayï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½å¸¦ ï¿½ï¿½ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Æ¼ï¿½ Å¥ï¿½ê°¡ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï´ï¿½.
+        //  3ÃÊ ´ë±â(¸ÞÀÎ ½º·¹µå ¸ØÃßÁö ¾ÊÀ½)
+        // await Task.Delay´Â ¸ÞÀÎ ½º·¹µå¸¦ ºí·ÎÅ·ÇÏÁö ¾Ê¾Æ¼­ Å¥ºê°¡ °è¼Ó µ½´Ï´Ù.
         await Task.Delay(3000);
 
-        // 2. ï¿½ñµ¿±ï¿½ ï¿½ï¿½ï¿½ ï¿½×½ï¿½Æ® (ï¿½ï¿½×¶ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¸ï¿½)
+        // 2. ºñµ¿±â ¹æ½Ä Å×½ºÆ® (¹é±×¶ó¿îµå ½º·¹µå ºÐ¸®)
         sw.Start();
 
-        // Task.Runï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½Ú¾î¿¡ï¿½ï¿½ ï¿½Û¾ï¿½ ï¿½ï¿½ï¿½ï¿½
+        // Task.RunÀ» ÅëÇØ ´Ù¸¥ ÄÚ¾î¿¡¼­ ÀÛ¾÷ ¼öÇà
         List<int> asyncResult = await Task.Run(() => HeavyParsingTask());
 
         sw.Stop();
-        UnityEngine.Debug.Log($"[ï¿½ñµ¿±ï¿½ ï¿½ï¿½ï¿½] ï¿½Ò¿ï¿½ ï¿½Ã°ï¿½: {sw.ElapsedMilliseconds}ms (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)");
+        UnityEngine.Debug.Log($"[ºñµ¿±â ¹æ½Ä] ¼Ò¿ä ½Ã°£: {sw.ElapsedMilliseconds}ms (¸ÞÀÎ ½º·¹µå ¿µÇâ ¾øÀ½)");
 
-        UnityEngine.Debug.Log("--- ï¿½ï¿½Ä¡ï¿½ï¿½Å© ï¿½×½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ---");
+        UnityEngine.Debug.Log("--- º¥Ä¡¸¶Å© Å×½ºÆ® Á¾·á ---");
     }
 
-    // ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Å¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
+    // ÀÇµµÀûÀ¸·Î ¹«°Å¿î ¿¬»êÀ» ¼öÇàÇÏ´Â ÇÔ¼ö
     List<int> HeavyParsingTask()
     {
         List<int> results = new List<int>();
         for (int i = 0; i < DATA_COUNT; i++)
         {
-            // ï¿½ï°¢ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ CPU ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+            // »ï°¢ÇÔ¼ö³ª Á¦°ö±Ù µîÀ» »ç¿ëÇÏ¿© CPU ºÎÇÏ¸¦ ÀÇµµÀûÀ¸·Î ³ôÀÓ
             double val = System.Math.Sqrt(i) * System.Math.Sin(i);
             results.Add((int)val % 10);
         }
