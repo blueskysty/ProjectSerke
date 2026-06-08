@@ -71,6 +71,7 @@ public IEnumerator LoadAndParseMapDataCoroutine()
     // 3. 파싱이 끝났으므로 다음 줄 실행 (동일하게 메인 스레드에서 오브젝트 생성)
     GenerateMap(parsedData); 
 }
+```csharp
 
 4. 💡 [Insight] Update와 Coroutine의 핵심 역할 분담 기준
 구동 원리가 유사한(메인 스레드 순차 실행) Update와 Coroutine을 언제, 어떻게 나누어 써야 하는지에 대한 구조적 기준을 정립했습니다.
