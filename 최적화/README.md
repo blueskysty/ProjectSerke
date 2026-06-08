@@ -26,11 +26,12 @@
 
 ---
 
-## 3. 실전 최적화 구조 및 코드 매커니즘(예시)
+## 3. 실전 최적화 구조 및 코드 메커니즘 비교
 
+### 💡[권장 방식] async/await 활용 (멀티 스레드 연산 분산)
 ```csharp
 // 함수 앞에 async를 붙여 비동기 함수임을 명시
-public async void LoadAndParseMapData()
+public async void LoadAndParseMapDataAsync()
 {
     // 1. 디스크에서 파일을 읽어오는 동안 메인 스레드는 화면을 계속 그리며 대기 (Non-blocking)
     ResourceRequest request = Resources.LoadAsync<TextAsset>("BigMapData");
@@ -39,11 +40,64 @@ public async void LoadAndParseMapData()
     string rawXmlText = ((TextAsset)request.asset).text;
 
     // 2. [핵심 최적화] 무거운 파싱(Text 해독) 연산 자체를 백그라운드 서브 코어로 강제 이주
-    //    이 반복문이 도는 동안에도 인게임 로딩 애니메이션은 60 FPS를 유지함
+    //    이 반복문이 도는 동안에도 인게임 로딩 애니메이션은 60 FPS를 부드럽게 유지함
     var parsedData = await Task.Run(() => {
-        return ParseXmlInternal(rawXmlText); // 순수 C# 연산 전담
+        return ParseXmlInternal(rawXmlText); // 순수 C# 연산 전담 (다른 CPU 코어 활용)
     });
 
     // 3. await 완료 후 자동으로 메인 스레드 복귀. 안전하게 유니티 오브젝트 생성
     GenerateMap(parsedData); 
 }
+
+### ⚠️ [한계점 예시] Coroutine 활용 (싱글 스레드 병목 유지)
+// 코루틴으로 만든 버전
+public IEnumerator LoadAndParseMapDataCoroutine()
+{
+    Debug.Log("[코루틴] 로딩 시작 (메인 스레드)");
+
+    // 1. 디스크에서 파일을 읽어오는 비동기 작업 시작 (엔진 내부 백그라운드 활용)
+    ResourceRequest request = Resources.LoadAsync<TextAsset>("BigMapData");
+        
+    // 유니티야, 파일 다 읽을 때까지 메인 스레드는 화면 그리면서 대기해줘 (yield return)
+    yield return request; 
+        
+    string rawXmlText = ((TextAsset)request.asset).text;
+
+    // 2. [코루틴의 한계점] 무거운 파싱(Text 해독) 연산 수행
+    // 코루틴은 '싱글 스레드'이므로, 이 무거운 함수가 도는 동안 메인 스레드가 붙잡힙니다.
+    // 데이터가 수만 줄이라면 이 순간 로딩 화면 애니메이션이 뚝 끊깁니다 (프레임 드랍 발생).
+    var parsedData = ParseXmlInternal(rawXmlText); 
+
+    // 3. 파싱이 끝났으므로 다음 줄 실행 (동일하게 메인 스레드에서 오브젝트 생성)
+    GenerateMap(parsedData); 
+}
+
+4. 💡 [Insight] Update와 Coroutine의 핵심 역할 분담 기준
+구동 원리가 유사한(메인 스레드 순차 실행) Update와 Coroutine을 언제, 어떻게 나누어 써야 하는지에 대한 구조적 기준을 정립했습니다.
+
+Update ➔ '정기적'이고 '지속적'인 루프
+
+게임이 실행되는 동안 단 1프레임도 놓치지 않고 실시간으로 감시하거나 체크해야 하는 로직에 적합합니다.
+
+예시: 매 프레임 키보드/마우스 입력 감지 (Input), 플레이어 캐릭터의 실시간 이동 및 시선 처리.
+
+Coroutine ➔ '비정기적'이고 '일시적'인 시퀀스
+
+특정 조건이나 이벤트가 발생했을 때만 작동하고, 일이 끝나면 자동으로 소멸하는 흐름 제어에 적합합니다.
+
+예시: 몬스터가 죽었을 때 "이펙트 재생 ➔ 1초 대기 ➔ 서서히 투명해지기 ➔ 오브젝트 삭제"와 같은 시간차 연출, 0.5초 주기로 주변 적을 감지하는 조건부 반복문.
+
+결론: 할 일이 없어도 매 프레임 CPU 자원을 소모하는 Update와 달리, 코루틴은 필요한 순간에만 켜서 사용(On/Off)하고 일시 정지(yield return)가 가능하므로 코드의 가독성과 메모리 관리 효율을 모두 극대화할 수 있습니다.
+
+5. 💡 [Deep Dive] 게임 엔진이 유독 싱글 코어(메인 스레드) 의존도가 높은 이유
+공부하는 과정에서 *"왜 그래픽/영상 작업은 멀티 코어를 적극적으로 활용하는데, 게임은 여전히 하나의 코어(메인 스레드) 의존도가 높을까?"*에 대한 컴퓨터 구조적 원인을 탐구하고 정리했습니다.
+
+영상/그래픽 작업 (데이터의 독립성): 4K 이미지를 바둑판처럼 쪼개어 코어 16개에 분산시켜도 각 영역이 서로 간섭하지 않으므로 병렬 처리가 극도로 효율적입니다.
+
+실시간 게임 루프 (데이터의 동기화 및 순서 보장): 게임은 플레이어의 입력, 몬스터의 AI 이동, 피격 판정, UI 갱신 등이 실시간(1초에 60번 이상)으로 완벽한 순서에 맞게 맞물려야 하는 '거대한 단일 생태계'입니다.
+
+멀티 스레드 분산의 한계: 만약 '플레이어의 공격 계산'과 '적의 대시 회피 계산'을 무작위 멀티 코어로 쪼개어 연산하면, 미세한 코어 간 연산 속도 차이로 인해 "피했는데 얻어맞는 치명적인 버그(Data Race 및 동기화 무너짐)"가 발생합니다.
+
+결론 및 마인드셋: 게임은 구조적으로 든든한 대장 코어 하나(메인 스레드)가 규칙과 순서를 통제해야만 안전합니다.
+
+따라서 **인게임 조작/AI 연출은 코루틴(싱글 스레드 시분할)**을 통해 유니티 생명주기 안에서 순서를 보장하고, 게임 루프와 완전히 독립된 대용량 파일 파싱 및 서버 통신만 async/await(Task.Run)로 백그라운드로 격리하는 하이브리드 설계가 최적화의 본질임을 깨달았습니다.
