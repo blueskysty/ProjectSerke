@@ -11,6 +11,7 @@
 
 ---
 
+
 ## 2. 유니티 비동기 구현 방식 비교: 코루틴 vs async/await
 
 ### ❌ 코루틴 (`IEnumerator` + `yield return`)
