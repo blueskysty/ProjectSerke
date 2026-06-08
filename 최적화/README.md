@@ -50,7 +50,6 @@ public async void LoadAndParseMapDataAsync()
 }
 
 ### ⚠️ [한계점 예시] Coroutine 활용 (싱글 스레드 병목 유지)
-C#
 // 코루틴으로 만든 버전
 public IEnumerator LoadAndParseMapDataCoroutine()
 {
