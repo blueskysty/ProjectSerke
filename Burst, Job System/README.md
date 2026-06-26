@@ -5,6 +5,8 @@ Unity의 **Burst Compiler**와 **Job System**을 활용하여 데이터 지향 �
 ## 📊 벤치마크 결과 비교
 **테스트 환경:** 라이젠 7 2700X / 32GB RAM
 
+<img width="746" height="229" alt="버스터조이" src="https://github.com/user-attachments/assets/878e8f9d-216a-42ed-827e-29fb1045ff01" />
+
 | 방식 | 100만 개 연산 (ms) | 1,000만 개 연산 (ms) |
 | :--- | :---: | :---: |
 | **Normal** | 248 ms | 2,467 ms |
