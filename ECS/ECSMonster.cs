@@ -7,7 +7,7 @@ public class ECSMonster: MonoBehaviour
     public float Speed;
 }
 
-public struct MonsterData: IComponentData
+public struct MonsterData: IComponentData, IEnableableComponent
 {
     public float Health;
     public float Speed;
