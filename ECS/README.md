@@ -39,6 +39,6 @@ ECS 월드(Subscene)와 MonoBehaviour 월드(Main Scene UI) 사이의 데이터 
 
 - **메모리 효율화 (UI Object Pooling):** 몬스터 생성/소멸 시 빈번한 Instantiate/Destroy 대신 오브젝트 풀링을 적용하여 가비지 컬렉션(GC) 발생을 방지하고 메모리 단편화를 해결했습니다.
 
-
-## 🚀 Key Performance Insights
-* 본 아키텍처를 통해 **수천 개의 엔티티를 멀티스레드로 처리**하면서도, 기존의 유니티 UI 시스템을 충돌 없이 안정적으로 운용하는 구조를 확립했습니다.
+### 6. 대규모 AI 네비게이션 최적화
+* **NavMeshQuery 시스템:** 기존 `NavMeshAgent`의 한계를 극복하기 위해 `NavMeshQuery` API를 사용하여 멀티스레드 기반의 경로 탐색 시스템을 구현하였습니다.
+* **Flow Field Pathfinding:** 몬스터 개체수가 증가함에 따른 탐색 비용을 해결하기 위해 흐름장(Flow Field) 알고리즘을 도입, 탐색 복잡도를 O(N)에서 O(1) 수준으로 최적화하여 수백 개체 이상의 동시 이동 환경을 구축하였습니다.
