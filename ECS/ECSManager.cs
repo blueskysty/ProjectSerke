@@ -1,9 +1,10 @@
 using Unity.Entities;
 using UnityEngine;
 
-public struct KillCountComponent: IComponentData
+public struct UICountComponent: IComponentData
 {
-    public int Count;
+    public int KillCount;
+    public int MonsterCount;
 }
 
 public class ECSManager : MonoBehaviour
@@ -13,9 +14,9 @@ public class ECSManager : MonoBehaviour
         var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
         // 싱글톤으로 사용할 엔티티 생성
-        var entity = entityManager.CreateEntity(typeof(KillCountComponent));
+        var entity = entityManager.CreateEntity(typeof(UICountComponent));
 
         // 초기값 설정
-        entityManager.SetComponentData(entity, new KillCountComponent { Count = 0 });
+        entityManager.SetComponentData(entity, new UICountComponent { KillCount = 0, MonsterCount = 0 });
     }
 }

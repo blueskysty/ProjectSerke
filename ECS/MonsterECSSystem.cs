@@ -3,6 +3,8 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine.AI;
+using static UnityEngine.Rendering.STP;
 
 public static class MathExtensions
 {
@@ -18,32 +20,116 @@ public static class MathExtensions
 
     public static quaternion NextYRotation(this ref Unity.Mathematics.Random self)
         => quaternion.RotateY(self.NextFloat(math.PI * 2));
+
+    // X/Z ï¿½Ý°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡(float3)ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Õ´Ï´ï¿½.
+    public static float3 CreateRandomSpawnPosition(this ref Unity.Mathematics.Random self, float radiusX, float radiusZ)
+    {
+        // 1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½
+        var diskPoint = self.NextOnDisk();
+        float3 candidatePos = new float3(diskPoint.x * radiusX, 0f, diskPoint.z * radiusZ);
+
+        // 2. ï¿½Ø´ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ NavMesh ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        // (NavMesh APIï¿½ï¿½ UnityEngine.Vector3ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï¹Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½È¯ ï¿½Ê¿ï¿½)
+        if (NavMesh.SamplePosition(candidatePos, out NavMeshHit hit, 5, NavMesh.AllAreas))
+        {
+            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ NavMesh ï¿½ï¿½Ç¥ ï¿½ï¿½È¯
+            return hit.position;
+        }
+
+        // 3. ï¿½ï¿½ï¿½ï¿½ ï¿½Öºï¿½ maxNavMeshDistance ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ NavMeshï¿½ï¿½ ï¿½Æ¿ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½ 
+        //    ï¿½ï¿½ï¿½ï¿½Ã¥ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ ï¿½ï¿½È¯ (ï¿½Ç´ï¿½ ï¿½Ê¿ä¿¡ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½)
+        return candidatePos;
+    }
 }
 
 [UpdateInGroup(typeof(InitializationSystemGroup))] 
 public partial struct MonsterSpawnSystem: ISystem
 {
+    private double timer; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+
     public void OnCreate(ref SystemState state)
-        => state.RequireForUpdate<Config>();
+    {
+        // Config ï¿½Ì±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        state.RequireForUpdate<Config>();
+        timer = 0.0;
+    }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        return;
+        
         var config = SystemAPI.GetSingleton<Config>();
 
-        var instacnces = state.EntityManager.Instantiate(config.Prefab, config.Spawncount, Allocator.Temp);
+        // 1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½É´Ï´ï¿½. (Query ï¿½ï¿½ï¿½)
+        int currentMonsterCount = SystemAPI.QueryBuilder().WithAll<MonsterData>().WithOptions(EntityQueryOptions.IncludeDisabledEntities).Build().CalculateEntityCount();
 
-        var rand = new Unity.Mathematics.Random(config.RandomSeed);
-        foreach(var entity in instacnces)
+        // 2. ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½Ö´ï¿½Ä¡(MaxCount)ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß´Ù¸ï¿½ ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
+        if (currentMonsterCount >= config.SpawncountMax)
         {
-            var xform = SystemAPI.GetComponentRW<LocalTransform>(entity);
-            var monster = SystemAPI.GetComponentRW<MonsterData>(entity);
-
-            xform.ValueRW = LocalTransform.FromPositionRotation(rand.NextOnDisk() * config.SpawnRadius, rand.NextYRotation()); 
-            monster.ValueRW = MonsterData.Random(rand.NextUInt());
-
+            return;
         }
-        state.Enabled = false;
+
+        // 3. Å¸ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Õ»ï¿½)
+        timer += SystemAPI.Time.DeltaTime;
+        
+
+        // 4. 1ï¿½Ê°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        if (timer >= 1.0)
+        {
+            timer -= 1.0; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+
+            // [ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡] ï¿½Ì¹ï¿½ Æ½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½îµµ ï¿½Ç´ï¿½ï¿½ï¿½ ï¿½ï¿½È®ï¿½ï¿½ ï¿½ï¿½ï¿½
+            // ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ 950ï¿½ï¿½ï¿½ï¿½ï¿½Ì°ï¿½ ï¿½Ö´ë°¡ 1000ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, 100ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ä±¸ï¿½Øµï¿½ ï¿½ï¿½ 50ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+            int allowedSpawnCount = config.SpawncountMax - currentMonsterCount;
+            int spawnCountThisTick = math.min(config.Spawncount, allowedSpawnCount);
+
+            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½Åµ
+            if (spawnCountThisTick <= 0)
+            {
+                return;
+            }
+
+            // UI Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+            if (SystemAPI.TryGetSingletonEntity<UICountComponent>(out var uiCountEntity))
+            {
+                var uiCountRW = SystemAPI.GetComponentRW<UICountComponent>(uiCountEntity);
+                uiCountRW.ValueRW.MonsterCount += spawnCountThisTick;
+            }
+
+            // 5. ï¿½ï¿½Æ¼Æ¼ ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½
+            var instances = state.EntityManager.Instantiate(config.Prefab, spawnCountThisTick, Allocator.Temp);
+
+            // ï¿½Å¹ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½ ï¿½Ê±ï¿½È­
+            var rand = new Unity.Mathematics.Random((uint)( SystemAPI.Time.ElapsedTime * 1000 ) + config.RandomSeed);
+
+            Entity playerEntity = Entity.Null;
+            if (SystemAPI.TryGetSingletonEntity<ECSPlayerData>(out var foundPlayer))
+            {
+                playerEntity = foundPlayer;
+            }
+
+
+            foreach (var entity in instances)
+            {
+                var xform = SystemAPI.GetComponentRW<LocalTransform>(entity);
+                var monster = SystemAPI.GetComponentRW<MonsterData>(entity);
+
+                // NextOnDisk()ï¿½ï¿½ 2ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½(float2)ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Õ´Ï´ï¿½. (x, y ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½)
+                // xï¿½ï¿½ï¿½ï¿½ SpawnRadiusX, z(ï¿½Ç´ï¿½ y)ï¿½ï¿½ï¿½ï¿½ SpawnRadiusYï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ý´Ï´ï¿½.
+                var spawnPos = rand.CreateRandomSpawnPosition( config.SpawnRadiusX, config.SpawnRadiusZ);
+               
+                xform.ValueRW = LocalTransform.FromPositionRotation(spawnPos, rand.NextYRotation());
+                monster.ValueRW = MonsterData.Random(rand.NextUInt());
+
+                // ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½Æ¼Æ¼ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+                if (playerEntity != Entity.Null && SystemAPI.HasComponent<NavAgentComponent>(entity))
+                {
+                    var navAgent = SystemAPI.GetComponentRW<NavAgentComponent>(entity);
+                    navAgent.ValueRW.targetEntity = playerEntity;
+                }
+            }
+        }
     }
 }
  
@@ -64,44 +150,63 @@ partial struct MonsterMoveJob: IJobEntity
 {
     public float Elapsed;
 
-    // ÀüÁøÇÏ¸é¼­ È¸ÀüÇÏ´Â ·ÎÁ÷À» ¼öÇàÇÕ´Ï´Ù.
+    // ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸é¼­ È¸ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
     public void Execute(in MonsterData monsterData, ref LocalTransform xform)
     {
         var rot = quaternion.RotateY(monsterData.Speed * Elapsed);
         var fwd = xform.Forward();
 
-        xform.Position += fwd * monsterData.Speed * Elapsed;
-        xform.Rotation = math.mul(xform.Rotation, rot);
+        //xform.Position += fwd * monsterData.Speed * Elapsed;
+        //xform.Rotation = math.mul(xform.Rotation, rot);
     }
 }
 
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 public partial struct MonsterReviveSystem: ISystem
 {
-    private double _nextReviveTime; // ´ÙÀ½ ºÎÈ° ½Ã°£À» ÀúÀå
+    private double _nextReviveTime; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È° ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+
+    public void OnCreate(ref SystemState state)
+    {
+        // Config ï¿½ï¿½ï¿½ï¿½ ï¿½Ì±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ù¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        state.RequireForUpdate<Config>();
+    }
 
     public void OnUpdate(ref SystemState state)
     {
-        // ÇöÀç °ÔÀÓ ½Ã°£ÀÌ ¼³Á¤µÈ ºÎÈ° ½Ã°£º¸´Ù ÀÛÀ¸¸é ´ë±â
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È° ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
         if (SystemAPI.Time.ElapsedTime < _nextReviveTime)
             return;
 
-        // 5ÃÊ µÚ ½Ã°£ °»½Å
+        // 5ï¿½ï¿½ ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½
         _nextReviveTime = SystemAPI.Time.ElapsedTime + 5.0;
 
         var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
             .CreateCommandBuffer(state.WorldUnmanaged);
 
-        // 'Disabled' ÅÂ±×°¡ ºÙÀº ¸ðµç ¸ó½ºÅÍ¸¦ Ã£½À´Ï´Ù.
-        // WithAll<Disabled>()´Â Disabled ÄÄÆ÷³ÍÆ®°¡ ÀÖ´Â ¿£Æ¼Æ¼¸¸ °ñ¶ó³À´Ï´Ù.
-        var query = SystemAPI.QueryBuilder().WithAll<MonsterData, Disabled>().Build();
-        foreach (var entity in query.ToEntityArray(state.WorldUpdateAllocator))
+        // ï¿½Å¹ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½ ï¿½Ê±ï¿½È­
+        var config = SystemAPI.GetSingleton<Config>();
+        var rand = new Unity.Mathematics.Random((uint)( SystemAPI.Time.ElapsedTime * 1000 ) + config.RandomSeed);
+
+        foreach (var (monster, agent, entity) in SystemAPI.Query<RefRO<MonsterData>, RefRW<NavAgentComponent>>()
+                             .WithAll<Disabled>()
+                             .WithEntityAccess())
         {
-            // Disabled ÅÂ±×¸¦ Á¦°ÅÇÏ¿© ·»´õ¸µ, ¹°¸®, ·ÎÁ÷À» ¸ðµÎ È°¼ºÈ­
+            // 1. Disabled ï¿½Â±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ È°ï¿½ï¿½È­
             ecb.RemoveComponent<Disabled>(entity);
 
-            // ºÎÈ° ½Ã À§Ä¡ ÃÊ±âÈ­°¡ ÇÊ¿äÇÏ´Ù¸é »ç¿ë
-            // ecb.SetComponent(entity, LocalTransform.FromPosition(0, 0, 0));
+            // 2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+            float3 spawnPos = rand.CreateRandomSpawnPosition(config.SpawnRadiusX, config.SpawnRadiusZ);
+            ecb.SetComponent(entity, LocalTransform.FromPosition(spawnPos));
+
+            // 3. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½
+            ecb.SetBuffer<WaypointBuffer>(entity); // ï¿½ï¿½ï¿½Û¸ï¿½ ï¿½ç¼³ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+
+            // 4. NavAgent ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ (ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½ï¿½ï¿½ 0f ï¿½ï¿½ï¿½ï¿½)
+            var agentData = agent.ValueRO;
+            agentData.nextPathCalculateTime = 0f;
+            agentData.pathCalculated = false;
+            ecb.SetComponent(entity, agentData);
         }
     }
 }

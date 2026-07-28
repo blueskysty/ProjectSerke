@@ -6,43 +6,63 @@ public enum SkillType
     Damage, Heal, Buff
 }
 
-[CreateAssetMenu]
-public class SkillData : ScriptableObject
+public abstract class SkillData : ScriptableObject
 {
-    public SkillEventChannelSO eventChannel; // 스킬 효과를 화면에 표시하기 위한 이벤트 채널
-
     [Header("Basic Info")]
-    public string skillName;    // 스킬 이름
-    public SkillType skillType; // 스킬 타입 (데미지, 힐, 버프)
-    public float cost;          // 스킬 사용에 필요한 SP
-    public float cooldown;      // 스킬 쿨타임
+    public string skillName;
+    public float cost;
+    public float cooldown;
+    public GameObject effectPrefab;
+    public SkillEventChannelSO eventChannel;
 
-    [Header("Values")]
-    public float power;         // 스킬 효과의 강도 (데미지 양, 회복 양, 버프 수치 등)
-    public float duration;      // 버프 지속 시간 (버프 스킬에만 적용)
-
-    [Header("Effect Prefab")]
-    public GameObject effectPrefab; // 스킬 효과 프리팹
-
-    // 스킬 활성화 메서드, player 객체를 받아서 스킬 효과 적용
-    public virtual void Activate(Player_Skill player)
+    // 공통 실행 흐름
+    public void Activate(Player_Skill player)
     {
-        Debug.Log($"{skillName} Activate");
+        ExecuteEffect(player); // 자식이 구현한 고유 로직 실행
+    }
 
-        switch (skillType)
-        {
-            case SkillType.Damage:
-                eventChannel.RaiseEvent($"{skillName} Activate\n{skillType} {power}");
-                break;
+    // 자식들이 알아서 구현할 효과 메서드
+    protected abstract void ExecuteEffect(Player_Skill player);
+}
 
-            case SkillType.Heal:
-                player.playerStatus.HPRecovery(power);
-                eventChannel.RaiseEvent($"{skillName} Activate\n{skillType} {power}");
-                break;
+[CreateAssetMenu(fileName = "New Damage Skill", menuName = "Skills/Damage Skill")]
+public class DamageSkillData : SkillData
+{
+    [Header("Damage Settings")]
+    public float damagePower;
 
-            case SkillType.Buff:
-                eventChannel.RaiseEvent($"{skillName} Activate\n{skillType} {power}");
-                break;
-        }
+    protected override void ExecuteEffect(Player_Skill player)
+    {
+        // 타겟에 데미지 전달 로직
+        eventChannel?.RaiseEvent($"{skillName} Activate\nDamage {damagePower}");
+    }
+}
+
+[CreateAssetMenu(fileName = "New Heal Skill", menuName = "Skills/Heal Skill")]
+public class HealSkillData : SkillData
+{
+    [Header("Heal Settings")]
+    public float healPower;
+
+    protected override void ExecuteEffect(Player_Skill player)
+    {
+        // 힐 적용 로직
+        player.playerStatus.HPRecovery(healPower);
+        eventChannel?.RaiseEvent($"{skillName} Activate\nHeal {healPower}");
+    }
+}
+
+[CreateAssetMenu(fileName = "New Buff Skill", menuName = "Skills/Buff Skill")]
+public class BuffSkillData : SkillData
+{
+    [Header("Buff Settings")]
+    public float buffPower;
+    public float duration; // 버프 전용 변수
+
+    protected override void ExecuteEffect(Player_Skill player)
+    {
+        // 버프 및 지속시간 적용 로직
+        player.SPBuff(buffPower,duration);
+        eventChannel?.RaiseEvent($"{skillName} Activate\nBuff {buffPower} (Duration: {duration}s)");
     }
 }

@@ -5,6 +5,7 @@ using TMPro;
 public class KillCountUI: MonoBehaviour
 {
     public TextMeshProUGUI killCountText;
+    public TextMeshProUGUI monsterCountText;
     private EntityManager entityManager;
 
     private float lastUpdateTime;
@@ -17,8 +18,10 @@ public class KillCountUI: MonoBehaviour
         // 최적화: 0.2초마다 갱신
         if (Time.time - lastUpdateTime > updateInterval)
         {
-            var count = entityManager.CreateEntityQuery(typeof(KillCountComponent)).GetSingleton<KillCountComponent>().Count;
-            killCountText.text = $"Kills: {count}";
+            var killCount = entityManager.CreateEntityQuery(typeof(UICountComponent)).GetSingleton<UICountComponent>().KillCount;
+            var monsterCount = entityManager.CreateEntityQuery(typeof(UICountComponent)).GetSingleton<UICountComponent>().MonsterCount;
+            killCountText.text = $"Kills: {killCount}";
+            monsterCountText.text = $"Monsters: {monsterCount}";
             lastUpdateTime = Time.time;
         }
     }

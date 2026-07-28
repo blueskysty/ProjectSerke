@@ -8,6 +8,12 @@ using Unity.Physics.Systems;
 [UpdateAfter(typeof(PhysicsSystemGroup))]
 public partial struct CollisionSystem: ISystem
 {
+    public void OnCreate(ref SystemState state)
+    {
+        state.RequireForUpdate<UICountComponent>();
+    }
+
+
     public void OnUpdate(ref SystemState state)
     {
         var ecbSingleton = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
@@ -15,14 +21,15 @@ public partial struct CollisionSystem: ISystem
 
         var ecb = SystemAPI.GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>()
             .CreateCommandBuffer(state.WorldUnmanaged);
-        var m_killCountEntity = SystemAPI.GetSingletonEntity<KillCountComponent>();
+
+        var uiCountEntity = SystemAPI.GetSingletonEntity<UICountComponent>();
 
         var job = new TriggerJob
         {
             MonsterGroup = SystemAPI.GetComponentLookup<MonsterData>(true),
             ECSPlayer = SystemAPI.GetComponentLookup<ECSPlayerData>(true),
-            KillCountGroup = SystemAPI.GetComponentLookup<KillCountComponent>(false),
-            KillCountEntity = m_killCountEntity, // ¹Ì¸® ÀúÀåÇØµÐ Ä«¿îÅÍ ¿£Æ¼Æ¼
+            uiCountGroup = SystemAPI.GetComponentLookup<UICountComponent>(false),
+            uiCountEntity = uiCountEntity, // ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ Ä«ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼Æ¼
             ECB = ecb
         };
 
@@ -30,16 +37,16 @@ public partial struct CollisionSystem: ISystem
     }
 }
 
-// Æ®¸®°Å ÀÌº¥Æ®
+// Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 [BurstCompile]
 struct TriggerJob: ITriggerEventsJob
 {
     [ReadOnly]    public ComponentLookup<MonsterData> MonsterGroup;
     [ReadOnly]    public ComponentLookup<ECSPlayerData> ECSPlayer;
 
-    // KillCountComponent¸¦ ¼öÁ¤ÇÏ±â À§ÇÑ Lookup
-    public ComponentLookup<KillCountComponent> KillCountGroup;
-    public Entity KillCountEntity; // Ä«¿îÆ®°¡ ÀúÀåµÈ ¿£Æ¼Æ¼
+    // KillCountComponentï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ Lookup
+    public ComponentLookup<UICountComponent> uiCountGroup;
+    public Entity uiCountEntity; // Ä«ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼Æ¼
 
     public EntityCommandBuffer ECB;
 
@@ -53,23 +60,21 @@ struct TriggerJob: ITriggerEventsJob
 
         if (( aMonster && bPlayer ) || ( aPlayer && bMonster ))
         {
-            // ¸ó½ºÅÍ ¿£Æ¼Æ¼¸¦ Ã£¾Æ¼­ Ã³¸®
+            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼Æ¼ï¿½ï¿½ Ã£ï¿½Æ¼ï¿½ Ã³ï¿½ï¿½
             Entity monsterEntity = aMonster ? te.EntityA : te.EntityB;
 
-            // ¸ó½ºÅÍ¸¦ ²ü´Ï´Ù (Disable)
+            // ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½Ï´ï¿½ (Disable)
             ECB.AddComponent<Disabled>(monsterEntity);
 
-            //Å³Ä«¿îÆ® Áõ°¡
-            var killData = KillCountGroup[KillCountEntity];
-            killData.Count++;
-            KillCountGroup[KillCountEntity] = killData;
-            // ¿ÏÀü »èÁ¦
-            // ECB.DestroyEntity(monsterEntity);
+            //Å³Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+            var killData = uiCountGroup[uiCountEntity];
+            killData.KillCount++;
+            uiCountGroup[uiCountEntity] = killData;
         }
     }
 }
 
-// ÄÝ¸®Àü ÀÌº¥Æ®
+// ï¿½Ý¸ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 //[BurstCompile]
 //struct CollisionJob : ICollisionEventsJob
 //{

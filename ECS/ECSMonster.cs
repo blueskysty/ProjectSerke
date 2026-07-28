@@ -25,6 +25,7 @@ public struct MonsterData: IComponentData, IEnableableComponent
 
 public class ECSMonsterBaker: MonoBehaviour
 {
+    [SerializeField] private Transform targetTransform;
     public float Health = 100;
     public float Speed = 5;
 

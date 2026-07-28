@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Collections;
 
 //player 스테이터스 클래스
 public class PlayerStatus
@@ -65,14 +66,26 @@ public class PlayerStatus
         spCurrent = Mathf.Max(0, spCurrent - amount);
         OnStatusChanged?.Invoke();
     }
+
+    public void Buffer(float amount)
+    {
+        spRecoverySpeed += amount;
+        OnStatusChanged?.Invoke();
+    }
+
+    public void BufferEnd(float amount)
+    {
+        spRecoverySpeed = amount;
+        OnStatusChanged?.Invoke();        
+    }
 }
 
 public class Player_Skill : MonoBehaviour
 {
-    [SerializeField]
-    private SkillManager skillManager;
-    [SerializeField]
-    private UI_Status ui_Status;
+    [SerializeField]    private SkillManager skillManager;    
+    [SerializeField]    private SkillBundleManager bundleManager;
+    [SerializeField]    private UI_Status ui_Status;
+
     public PlayerStatus playerStatus;
 
     [SerializeField]
@@ -93,6 +106,18 @@ public class Player_Skill : MonoBehaviour
         SkillInput();
     }
 
+
+    // 예: "Fireball" 스킬을 번들에서 불러와 사용
+    public void UseSkillFromBundle(string skillName)
+    {
+        SkillData skill = bundleManager.GetSkill(skillName);
+        if (skill != null)
+        {
+            // 부모의 Activate 호출 -> 자식(Heal, Damage 등)의 ExecuteEffect가 자동 실행됨!
+            skill.Activate(this); 
+        }
+    }
+
     private void StatusUpdate()
     {
         playerStatus.HPAutoConsume();   // hp 자동 소모
@@ -107,6 +132,20 @@ public class Player_Skill : MonoBehaviour
     public void HPRecorvery(float amount)
     {
         playerStatus.HPRecovery(amount);    //hp 회복
+    }
+
+
+    public void SPBuff(float amount,  float duration)
+    {
+        playerStatus.Buffer( amount);
+        StartCoroutine(ResetBuff(amount,duration));
+    }
+    
+    private IEnumerator ResetBuff(float amount, float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        playerStatus.BufferEnd(amount);
+        yield break;
     }
 
     // 1~4번 누를시 대응하는 스킬을 사용
