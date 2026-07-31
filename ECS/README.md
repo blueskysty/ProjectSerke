@@ -8,6 +8,7 @@
 ### 📹 System Performance Demonstration
 
 https://github.com/user-attachments/assets/466b1482-06b3-46ce-bd29-3d49a8fd3260
+
 *(▲ 5,000개 엔티티 실시간 스폰, NavMeshQuery 기반 동적 길찾기 및 타겟 추적 시 평균 200 FPS 유지 시연)*
 
 * **Max Active Monsters:** `5,000`
