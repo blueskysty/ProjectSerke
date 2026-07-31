@@ -22,8 +22,8 @@
 
 * **데이터 중심 설계 (Data-Oriented Design):** 기존 MonoBehavior의 OOP 방식에서 벗어나 ComponentData 중심의 캐시 친화적(Cache-Friendly) 구조로 전환, CPU L1/L2 캐시 미스를 극도로 낮췄습니다.
 * **Burst Compiler & C# Job System:** 안전한 멀티스레딩 알고리즘을 통해 CPU 코어 자원을 100% 활용하며, SIMD 명령어 세트로 컴파일되는 Burst Compiler를 결합하여 수천 개 엔티티의 연산 성능을 대폭 향상시켰습니다.
-* **메인 스레드 Direct Access 최적화:** **스폰 직후 발생할 수 있는 1프레임의 프레임 동기화 지연(Stale Data)**을 차단하기 위해, 길찾기 및 타겟 지정 데이터(NavAgentComponent)는 ECB 지연 적용 대신 메인 스레드 Direct Access 패턴을 적용하여 즉시 데이터 주입을 보장했습니다.
-**NavMesh Query 대용량 버퍼 및 비동기 연산 완결 최적화:** 대각선 먼 거리 길찾기 시 100회 단위의 단일 연산 조기 종료로 발생하던 `PathQueryStatus.InProgress` 동결 버그를 규명했습니다. 경로 노드 버퍼(`maxNodes`) 확장 및 누적 연산(`UpdateFindPath`) 완결 Loop를 구축하여, 대규모 맵 반대편 추적 시에도 AI 동결 현상 없는 완벽한 경로 탐색을 보장했습니다.
+* **메인 스레드 Direct Access 최적화: 스폰 직후 발생할 수 있는 1프레임의 프레임 동기화 지연(Stale Data)**을 차단하기 위해, 길찾기 및 타겟 지정 데이터(NavAgentComponent)는 ECB 지연 적용 대신 메인 스레드 Direct Access 패턴을 적용하여 즉시 데이터 주입을 보장했습니다.
+* **NavMesh Query 대용량 버퍼 및 비동기 연산 완결 최적화:** 대각선 먼 거리 길찾기 시 100회 단위의 단일 연산 조기 종료로 발생하던 `PathQueryStatus.InProgress` 동결 버그를 규명했습니다. 경로 노드 버퍼(`maxNodes`) 확장 및 누적 연산(`UpdateFindPath`) 완결 Loop를 구축하여, 대규모 맵 반대편 추적 시에도 AI 동결 현상 없는 완벽한 경로 탐색을 보장했습니다.
 
 
 ## ⚡ 2. Engineering & Optimization Insight (성능 검증)
@@ -57,10 +57,10 @@
 
 | 평가 항목 | Classic OOP (MonoBehaviour) | DOTS (ECS + Job System) | 차이 및 결과 분석 |
 | :--- | :--- | :--- | :--- |
-| **1,000 개체 이동/AI 연산** | ~18.5 ms (프레임 드랍 발생) | **~1.8 ms** | **약 10배 연산속도 향상 (CPU 병목 해소)** |
+| **5,000 개체 이동/AI 연산** | ~18.5 ms (프레임 드랍 발생) | **~1.8 ms** | **약 10배 연산속도 향상 (CPU 병목 해소)** |
 | **GC Alloc (프레임당)** | 수 KB ~ 수십 KB 발생 | **0 B (Zero GC)** | 메모리 파편화 및 GC Spike 완전 차단 |
 | **메인 스레드 점유율** | High (동기적 Update 처리) | **Low (Worker Thread 분산)** | 메인 스레드는 UI 및 핵심 로직에 집중 가능 |
-| **평균 프레임 (1,000 Entity)**| 25~35 FPS (불안정) | **60 FPS 방어 (최대 144 FPS)** | 대규모 전투 상황에서도 매끄러운 UX 보장 |
+| **평균 프레임 (5,000 Entity)**| 25~35 FPS (불안정) | **60 FPS 방어 ( 90 ~ 220 FPS)** | 대규모 전투 상황에서도 매끄러운 UX 보장 |
 
 💡 **확장성(Scalability) 관점의 결론:** 스폰 수가 적은 단일 오브젝트 환경에서는 초기 설정 비용으로 인해 차이가 적을 수 있으나, **화면에 등장하는 엔티티의 수가 늘어날수록 DOTS 아키텍처의 프레임 방어 능력과 자원 효율성이 기하급수적으로 증가함**을 정량 데이터로 검증했습니다.
 

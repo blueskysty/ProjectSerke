@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using Unity.Entities;
+﻿using Unity.Entities;
 using UnityEngine.Experimental.AI;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -9,25 +8,25 @@ using Unity.Burst;
 [BurstCompile]
 public partial struct NavAgentSystem: ISystem
 {
-    // 웨이포인트 버퍼를 빠르게 조회하기 위한 룩업 객체
+    // 웨이포인트 버퍼 룩업
     private BufferLookup<WaypointBuffer> waypointBufferLookup;
 
-    // 유니티 내브메시 월드 인스턴스
+    // 내브메시 월드 인스턴스
     private NavMeshWorld navMeshWorld;
 
-    // 에이전트들을 관리하기 위한 쿼리
+    // 에이전트 쿼리
     private EntityQuery agentQuery;
 
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        // 1. 버퍼 룩업 초기화 (읽기/쓰기 가능 상태)
+        // 버퍼 룩업 초기화
         waypointBufferLookup = state.GetBufferLookup<WaypointBuffer>(false);
 
-        // 2. 기본 내브메시 월드 가져오기
+        // 내브메시 월드 받아오기
         navMeshWorld = NavMeshWorld.GetDefaultWorld();
 
-        // 3. 네비게이션 에이전트와 위치 컴포넌트를 가진 엔티티 쿼리 빌드
+        // 쿼리 빌드
         agentQuery = new EntityQueryBuilder(Allocator.Persistent)
             .WithAll<NavAgentComponent, LocalTransform>()
             .Build(ref state);
@@ -36,42 +35,32 @@ public partial struct NavAgentSystem: ISystem
     [BurstCompile]
     public void OnDestroy(ref SystemState state)
     {
-        // 자원 해제 작업 (필요한 경우 여기에 작성)
+        // 리소스 해제 (필요 시 구현)
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        // 매 프레임 버퍼 룩업 상태 갱신
+        // 버퍼 룩업 갱신
         waypointBufferLookup.Update(ref state);
 
-        // 비동기 잡(Job) 안에서 컴포넌트 변경 사항을 안전하게 기록하기 위한 ECB(Entity Command Buffer) 생성
+        // ECB 생성 (멀티스레드 잡 내부에서 사용)
         var ecbSingleton = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>();
         var ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
 
-        // -------------------------------------------------------------
-        // [1단계] 이동 로직 (MoveJob) - 멀티스레드 병렬 처리를 위해 잡 스케줄링
-        // -------------------------------------------------------------
+        //   이동 로직 (MoveJob) - 멀티스레드 병렬 처리를 위해 잡 스케줄링
         var moveJob = new MoveJob
         {
             DeltaTime = SystemAPI.Time.DeltaTime,
             WaypointBufferLookup = waypointBufferLookup,
             Ecb = ecb
         };
-        // 시스템의 의존성(Dependency) 체인에 등록하여 병렬 실행 예약
         state.Dependency = moveJob.ScheduleParallel(state.Dependency);
 
-        // -------------------------------------------------------------
-        // [동기화] 이동 잡이 완전히 끝날 때까지 메인 스레드 대기
-        // -------------------------------------------------------------
-        // 멀티스레드로 돌던 MoveJob이 끝난 후, 아래 메인 스레드 영역에서 
-        // 데이터 충돌(Race Condition) 없이 안전하게 EntityManager에 접근할 수 있도록 동기화합니다.
+        // 이동 잡 동기화
         state.Dependency.Complete();
 
-        // -------------------------------------------------------------
-        // [2단계] 경로 계산 로직 (CalculatePath) - 메인 스레드에서 순차 처리
-        // -------------------------------------------------------------
-        // 유니티 내장 NavMeshQuery는 반드시 메인 스레드에서만 생성되어야 하므로 이곳에서 처리합니다.
+        // 경로 계산 (메인 스레드, NavMeshQuery 생성 필요)
         double elapsedTime = SystemAPI.Time.ElapsedTime;
 
         // 메인 스레드 전용 임시 쿼리 인스턴스 생성 (1회성 생성 후 재사용)
@@ -101,18 +90,16 @@ public partial struct NavAgentSystem: ISystem
     private void CalculatePath(RefRW<NavAgentComponent> navAgent, RefRW<LocalTransform> transform, DynamicBuffer<WaypointBuffer> waypointBuffer,
         ref SystemState state, NavMeshQuery query)
     {
-        float3 fromPosition = transform.ValueRO.Position;
-
-        // 타겟(목적지) 엔티티가 실제로 존재하는지 검증 후 위치 추출
-        if (!state.EntityManager.Exists(navAgent.ValueRO.targetEntity))
-        {
-            Debug.LogWarning($"Target entity {navAgent.ValueRO.targetEntity} does not exist.");
+        var targetEntity = navAgent.ValueRO.targetEntity;
+        if (targetEntity == Entity.Null || !SystemAPI.Exists(targetEntity))
+        {   
             return;
         }
 
-        float3 toPosition = state.EntityManager.GetComponentData<LocalTransform>(navAgent.ValueRO.targetEntity).Position;
+        float3 fromPosition = transform.ValueRO.Position;
+        float3 toPosition = state.EntityManager.GetComponentData<LocalTransform>(navAgent.ValueRO.targetEntity).Position;     
 
-        float3 extents = new float3(1, 1, 1);
+        float3 extents = new float3(3, 3, 3);
 
         // 출발지와 목적지를 내브메시 표면에 매핑
         NavMeshLocation fromLocation = query.MapLocation(fromPosition, extents, 0);
@@ -120,20 +107,30 @@ public partial struct NavAgentSystem: ISystem
 
         PathQueryStatus status;
         PathQueryStatus returningStatus;
-        int maxPathSize = 100;
+        int maxPathSize = 256;
 
         // 매핑된 위치가 유효한 경우 길찾기 시작
         if (query.IsValid(fromLocation) && query.IsValid(toLocation))
         {
             status = query.BeginFindPath(fromLocation, toLocation);
+
             if (status == PathQueryStatus.InProgress || status == PathQueryStatus.Success)
             {
-                // 경로 탐색 업데이트 (최대 100번의 연산 허용)
-                status = query.UpdateFindPath(100, out int iterationsPerformed);
+
+                // 거리가 아무리 멀어도 길찾기가 완성(Success)될 때까지 반복 연산!
+                // (단, 무한 루프 방지를 위해 최대 iteration 상한선 설정)
+                int maxIterations = 1000;
+                int performedIterations = 0;
+                
+                while (status == PathQueryStatus.InProgress && performedIterations < maxIterations)
+                {
+                    status = query.UpdateFindPath(100, out int iterations);
+                    performedIterations += iterations;
+                }
+
                 if (status == PathQueryStatus.Success)
                 {
                     status = query.EndFindPath(out int pathSize);
-
                     // 경로 결과 데이터를 담을 임시 NativeArray 생성
                     NativeArray<NavMeshLocation> result = new NativeArray<NavMeshLocation>(pathSize + 1, Allocator.Temp);
                     NativeArray<StraightPathFlags> straightPathFlag = new NativeArray<StraightPathFlags>(maxPathSize, Allocator.Temp);
@@ -157,20 +154,21 @@ public partial struct NavAgentSystem: ISystem
                         maxPathSize
                     );
 
-                    // 길찾기가 성공적으로 완료되면 웨이포인트 버퍼 갱신
-                    if (returningStatus == PathQueryStatus.Success)
+                    if (returningStatus == PathQueryStatus.Success && straightPathCount > 0)
                     {
                         waypointBuffer.Clear();
 
-                        foreach (NavMeshLocation location in result)
+                        // result 전체가 아니라 실제 계산된 straightPathCount 만큼만 순회!
+                        for (int i = 0; i < straightPathCount; i++)
                         {
-                            if (location.position != Vector3.zero)
+                            float3 pos = result[i].position;
+                            if (!pos.Equals(float3.zero))
                             {
-                                waypointBuffer.Add(new WaypointBuffer { wayPoint = location.position });
+                                waypointBuffer.Add(new WaypointBuffer { wayPoint = pos });
                             }
                         }
 
-                        // 에이전트 상태를 이동 가능하도록 플래그 갱신
+                        // 에이전트 이동 가능 상태로 전환
                         navAgent.ValueRW.currentWaypoint = 0;
                         navAgent.ValueRW.pathCalculated = true;
                     }
@@ -200,16 +198,19 @@ public partial struct NavAgentSystem: ISystem
         {
             // 경로가 계산되지 않았거나 유효한 웨이포인트 버퍼가 없으면 중단
             if (!navAgent.pathCalculated)
+            {                
                 return;
+            }
 
             if (!WaypointBufferLookup.TryGetBuffer(entity, out DynamicBuffer<WaypointBuffer> waypointBuffer) || waypointBuffer.Length == 0)
+            {
                 return;
+            }
 
-            // 현재 목표 웨이포인트에 충분히 도달했는지 체크 (0.4유닛 이내)
+            // 현재 웨이포인트 도달 체크 (0.4, 이하)
             if (navAgent.currentWaypoint < waypointBuffer.Length &&
                 math.distance(transform.Position, waypointBuffer[navAgent.currentWaypoint].wayPoint) < 0.4f)
             {
-                // 다음 웨이포인트가 남아있다면 인덱스 증가
                 if (navAgent.currentWaypoint + 1 < waypointBuffer.Length)
                 {
                     navAgent.currentWaypoint += 1;
@@ -217,11 +218,11 @@ public partial struct NavAgentSystem: ISystem
                 }
             }
 
-            // 모든 웨이포인트를 다 돌았으면 이동 중지
+            // 경로 끝
             if (navAgent.currentWaypoint >= waypointBuffer.Length)
                 return;
 
-            // 이동 방향 계산
+            // 이동 벡터 계산
             float3 direction = waypointBuffer[navAgent.currentWaypoint].wayPoint - transform.Position;
             if (math.lengthsq(direction) > 0.001f)
             {
@@ -236,7 +237,7 @@ public partial struct NavAgentSystem: ISystem
                 // 정해진 속도(moveSpeed)에 따라 위치 전진
                 transform.Position += math.normalize(direction) * DeltaTime * navAgent.moveSpeed;
 
-                // 변경된 위치 및 회전 값을 ECB에 예약
+                // ECB 반영
                 Ecb.SetComponent(sortedIndex, entity, transform);
             }
         }

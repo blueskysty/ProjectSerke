@@ -7,7 +7,7 @@ public class ECSMonster: MonoBehaviour
     public float Speed;
 }
 
-public struct MonsterData: IComponentData, IEnableableComponent
+public struct MonsterData: IComponentData
 {
     public float Health;
     public float Speed;
@@ -23,15 +23,14 @@ public struct MonsterData: IComponentData, IEnableableComponent
     }
 }
 
-public class ECSMonsterBaker: MonoBehaviour
+public class MonsterAuthoring: MonoBehaviour
 {
-    [SerializeField] private Transform targetTransform;
     public float Health = 100;
     public float Speed = 5;
 
-    class baker: Baker<ECSMonster>
+    class baker: Baker<MonsterAuthoring>
     {
-        public override void Bake(ECSMonster authoring)
+        public override void Bake(MonsterAuthoring authoring)
         {
             var entity = GetEntity(TransformUsageFlags.Dynamic);
             AddComponent(entity, new MonsterData

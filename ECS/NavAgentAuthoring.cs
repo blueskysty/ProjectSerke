@@ -18,9 +18,12 @@ public class NavAgentAuthoring : MonoBehaviour
             var entity = GetEntity(TransformUsageFlags.Dynamic);
 
             AddComponent(entity, new NavAgentComponent
-            {                
-                targetEntity = GetEntity(authoring.targetTransform, TransformUsageFlags.Dynamic),
-                moveSpeed = authoring.moveSpeed
+            {
+                targetEntity = GetEntity(authoring.targetTransform, TransformUsageFlags.Dynamic),                
+                pathCalculated = false,
+                currentWaypoint = 0,
+                moveSpeed = authoring.moveSpeed,
+                nextPathCalculateTime = 0,
             });
             AddBuffer<WaypointBuffer>(entity);
         }
