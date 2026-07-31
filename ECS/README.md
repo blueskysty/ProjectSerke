@@ -19,7 +19,8 @@
 ### 3. Separation of Concerns (역할의 분리)
 * **Main Scene (Management Layer):** UI 시스템(UGUI), 카메라, 전체 씬 흐름 제어.
 * **Subscene (Simulation Layer):** 플레이어, 몬스터, 사물 등 고성능 연산이 필요한 개체.
-* **기대 효과:** * 시스템 간 결합도를 낮추어 유지보수성 향상.
+* **기대 효과:** 
+    * 시스템 간 결합도를 낮추어 유지보수성 향상.
     * 특정 씬 스트리밍(Scene Streaming)을 통한 효율적인 메모리 관리.
     * ECS 멀티스레드 연산과 UI 메인 스레드 연산 간의 병목 현상 완화.
 
