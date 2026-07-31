@@ -1,6 +1,6 @@
 # 🏗 Project Architecture: ECS-Driven Game Engine
 
-본 프로젝트는 Unity ECS(DOTS)의 성능을 극대화하면서도 안정적인 프로젝트 운영을 위해 **Main Scene(Management Layer)** 과 **Subscene(Simulation Layer)**을 분리한 아키텍처를 채택했습니다.
+본 프로젝트는 Unity ECS(DOTS)의 성능을 극대화하면서도 안정적인 프로젝트 운영을 위해 **Main Scene(Management Layer)** 과 **Subscene(Simulation Layer)** 을 분리한 아키텍처를 채택했습니다.
 
 ## 💡 Architectural Decisions
 
