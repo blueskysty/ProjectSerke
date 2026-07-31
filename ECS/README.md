@@ -40,5 +40,6 @@ ECS 월드(Subscene)와 MonoBehaviour 월드(Main Scene UI) 사이의 데이터 
 - **메모리 효율화 (UI Object Pooling):** 몬스터 생성/소멸 시 빈번한 Instantiate/Destroy 대신 오브젝트 풀링을 적용하여 가비지 컬렉션(GC) 발생을 방지하고 메모리 단편화를 해결했습니다.
 
 ### 6. 대규모 AI 네비게이션 최적화
-* **NavMeshQuery 시스템:** 기존 `NavMeshAgent`의 한계를 극복하기 위해 `NavMeshQuery` API를 사용하여 멀티스레드 기반의 경로 탐색 시스템을 구현하였습니다.
-* **Flow Field Pathfinding:** 몬스터 개체수가 증가함에 따른 탐색 비용을 해결하기 위해 흐름장(Flow Field) 알고리즘을 도입, 탐색 복잡도를 O(N)에서 O(1) 수준으로 최적화하여 수백 개체 이상의 동시 이동 환경을 구축하였습니다.
+* **NavMeshQuery 시스템:** 기존 `NavMeshAgent`의 오버헤드와 단일 스레드 한계를 극복하기 위해 `NavMeshQuery` API 기반의 멀티스레드 경로 탐색 시스템을 구축했습니다.
+* **메인 스레드 Direct Access 최적화:** 스폰 직후 발생할 수 있는 1프레임의 프레임 동기화 지연(Stale Data)을 차단하기 위해, 길찾기 및 타겟 지정 데이터(`NavAgentComponent`)는 ECB(EntityCommandBuffer) 지연 적용 대신 메인 스레드 Direct Access 패턴을 적용하여 즉시 데이터 주입을 보장했습니다.
+* **NavMeshQuery 대용량 버퍼 및 비동기 연산 완결 최적화:** 먼 거리 길찾기 시 100회 단위의 단일 연산 조기 종료로 인해 AI가 멈추던 `PathQueryStatus.InProgress` 동결 버그를 규명했습니다. 경로 노드 버퍼(`maxNodes`) 확장 및 누적 연산(`UpdateFindPath`) 완결 Loop를 구축하여, 대규모 맵 반대편 추적 시에도 동결 현상 없는 완벽한 경로 탐색을 보장했습니다.

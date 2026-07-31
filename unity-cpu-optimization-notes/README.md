@@ -1,36 +1,36 @@
-# 🧠 유니티 성능 최적화 & CPU 아키텍처 메모리
-
-Unity의 **Burst Compiler**, **Job System**, 그리고 **CPU 하드웨어 구조(L1i/L1d, Register, Core)** 간의 상호작용과 최적화 원리를 정리한 메모입니다.
+# 📄 유니티 성능 최적화 & CPU 아키텍처 메모리
 
 ---
 
 ## 1. ⚡ Burst Compiler와 코드 영역 (Instruction Section)
 
 ### ❓ 버스트 컴파일러를 써야만 코드 영역에 들어가는가?
-* **NO.** 일반 C# (Mono/IL2CPP)이든 버스트 컴파일러든, **모든 C# 코드는 기계어로 번역되어 메모리의 코드 영역(Instruction / Text Section)으로 들어가 실행**됩니다.
-* 차이는 **"코드 영역으로 들어가느냐 마느냐"**가 아니라 **"코드 영역에 들어가는 기계어의 품질과 크기"**입니다.
+**NO.** 일반 C# (Mono/IL2CPP)이든 Burst Compiler든, 모든 C# 코드는 기계어로 번역되어 메모리의 **코드 영역(Text Section)**으로 들어가 실행됩니다.  
+차이는 **"코드 영역 존재 여부"**가 아니라 **"기계어의 구조, 길이, 그리고 실행 효율"**입니다.
 
 ### 🔍 일반 C# 번역 vs Burst 번역 비교
-* **일반 C# (Mono/JIT):**
-  * Null 체크, 배열 범위 검사(`IndexOutOfRangeException`), GC 추적 등 **안전장치 기계어 코드**가 대량으로 삽입됩니다.
-  * 명령어 길이가 길어 **L1i (Instruction Cache)** 공간을 많이 차지하고 실행 속도가 보통입니다.
-* **버스트 컴파일러 (Burst Compiler):**
-  * 예외 처리와 안전 검사 코드를 과감히 제거합니다 (`Struct` 사용 강제, 배열 검사 생략 등).
-  * SIMD(AVX 등) CPU 특수 명령어를 활용해 **극도로 압축되고 정교한 기계어**를 만듭니다.
-  * 명령어 길이가 짧아 **L1i 캐시 적중률(Hit Rate)이 대폭 상승**하며 폭발적인 연산 속도를 제공합니다.
+
+| 구분 | 일반 C# (Mono / JIT / IL2CPP) | Burst Compiler (LLVM 기반) |
+| :--- | :--- | :--- |
+| **안전 검사** | Null Check, Array Bounds Check 등 안전장치 기계어가 대량으로 포함됨 | C# Struct 제약 조건 활용으로 안전 검사 기계어를 과감히 제거 |
+| **연산 방식** | 일반 Scalar 연산 (데이터 하나씩 순차 처리) | **SIMD (AVX/SSE)** 명령어를 활용해 하나의 명령어 패킷으로 대량 연산 |
+| **L1i 영향** | 코드가 길고 비대하여 **L1i (Instruction Cache) 적중률 하락** | 코드가 짧고 밀도 높으며 Inlining되어 **L1i 캐시 적중률 극대화** |
 
 ---
 
 ## 2. 🛡️ Job System의 `[ReadOnly]` / Read-Write와 Burst의 관계
 
-### 1) [ReadOnly] / Read-Write의 주체 = Job System
-* **안전장치 (Safety Check):** `[ReadOnly]`와 Read-Write(RW)를 감시하고 스레드 충돌(`InvalidOperationException`)을 막는 것은 **유니티 잡 시스템의 역할**입니다.
-* 잡 시스템은 RW 데이터에 대해 다른 스레드가 동시 접근하지 못하도록 순서를 제어합니다.
+### 1) 역할 분담: Safety Check vs Compiler Optimization
+* **Job System의 역할 (안전 제어):**  
+  `[ReadOnly]` 및 Read-Write(RW) 키워드를 읽어, 메인 스레드 및 작업 스레드 간의 Data Race(스레드 충돌 및 무단 변경)를 감시하고 실행 순서를 제어합니다.
+* **Burst Compiler의 역할 (기계어 최적화):**  
+  `[ReadOnly]` 키워드를 **Alias Restriction (포인터 중복 참조 금지 힌트)**으로 해석합니다.
 
-### 2) Burst Compiler가 `[ReadOnly]`를 다루는 방식 (성능 최적화)
-* 버스트 컴파일러는 잡 시스템이 제공한 `[ReadOnly]` 힌트를 바탕으로 **기계어 레벨에서 극상 최적화**를 수행합니다.
-* **RW (Read-Write)일 때:** 중간에 값이 바뀔 수 있으므로, 매번 메모리(RAM/L1d 캐시) 주소를 찾아가서 값을 읽어오는 기계어를 생성합니다.
-* **`[ReadOnly]` (RO)일 때:** 값이 절대 바뀌지 않음을 확신하고, 메모리 재방문을 생략한 채 **CPU 최정예 저장소인 레지스터(Register)에 값을 고정(Register Optimization / Alias Restriction)해 두고 즉시 연산**합니다.
+### 2) `[ReadOnly]`가 만들어내는 레지스터 최적화 (Register Optimization)
+* **Read-Write (RW) 상태일 때:**  
+  컴파일러 입장에선 "다른 스레드나 내부 연산에 의해 이 데이터 주소의 값이 언제든 바뀔 수 있다"고 판단합니다. 따라서 매번 메모리(RAM/L1d) 주소를 직접 재방문해서 읽어옵니다.
+* **`[ReadOnly]` (RO) 상태일 때:**  
+  컴파일러는 "이 데이터는 실행 도중 값이 절대 바뀌지 않는다"는 점을 확신합니다. 메모리를 재방문하지 않고 **CPU 최고속 저장소인 레지스터(Register)**에 포인터/데이터 값을 상주시켜 재사용(Register Hoisting)합니다.
 
 ---
 
