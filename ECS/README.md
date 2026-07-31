@@ -54,3 +54,4 @@ ECS World(Subscene)와 MonoBehaviour World(Main Scene UI) 사이의 데이터 �
 * **NavMeshQuery 시스템:** 기존 `NavMeshAgent`의 메인 스레드 단일 연산 오버헤드를 극복하고자, `NavMeshQuery` API 기반의 C# Job System 병렬 경로 탐색 시스템을 구축했습니다.
 * **메인 스레드 Direct Access 최적화:** 스폰 직후 발생하던 1프레임의 동기화 지연(Stale Data)을 막기 위해, 길찾기 및 타겟 지정 데이터(`NavAgentComponent`)는 ECB 지연 적용 대신 **메인 스레드 Direct Access 패턴**을 적용해 스폰 프레임에 즉시 주입되도록 보장했습니다.
 * **NavMeshQuery 누적 연산 Loop 및 대용량 버퍼 구축:** 장거리 길찾기 시 단일 프레임 연산 제한(100회)으로 인해 AI가 멈추는 `PathQueryStatus.InProgress` 동결 버그를 규명했습니다. 경로 노드 버퍼(`maxNodes`) 확장 및 누적 연산(`UpdateFindPath`) 완결 Loop를 구축하여, **5,000마리의 몬스터가 맵 반대편까지 동결 없이 완벽하게 추적**하도록 최적화했습니다.
+* **예외 상황 대비 Safe-Fail System (NavMesh 이탈 자동 복구):** 대규모 엔티티 밀집 시 발생할 수 있는 Physics Clipping(벽 뚫림/맵 이탈) 현상에 대비하여, 5초 이상 NavMesh 영역을 벗어난 객체를 감지하고 가장 최근 안전 좌표로 자동 복구(Teleport)하는 예외 처리 루틴을 구축했습니다.
