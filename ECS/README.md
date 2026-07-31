@@ -9,7 +9,7 @@
 
 https://github.com/user-attachments/assets/466b1482-06b3-46ce-bd29-3d49a8fd3260
 
-*(▲ 5,000개 엔티티 실시간 스폰, NavMeshQuery 기반 동적 길찾기 및 타겟 추적 시 평균 200 FPS 유지 시연)*
+*(▲ 유니티 Profiler 화면을 통해 5,000개 엔티티 스폰 및 추적 중에도 GC Alloc 0 B 및 **안정적인 Frame Time(ms)*이 유지됨을 실시간으로 검증하는 시연 영상)*
 
 * **Max Active Monsters:** `5,000`
 * **Average Frame Rate:** `190 ~ 220 FPS`
