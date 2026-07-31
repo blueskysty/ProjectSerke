@@ -5,9 +5,17 @@
 
 ---
 
-### 📹 System Performance Demonstration
+#### 1. Gameplay & Frame Rate Showcase
+> 프로파일러 오버헤드가 없는 환경에서 5,000개 엔티티 스폰 및 추적 시 **최대 200+ FPS**의 매끄러운 성능을 보여주는 시연 영상입니다.
 
 https://github.com/user-attachments/assets/466b1482-06b3-46ce-bd29-3d49a8fd3260
+
+
+#### 2. Profiler & Zero-GC Technical Proof
+> 유니티 프로파일러를 동시 측정하여 **GC Alloc 0 B (Zero GC)** 유지 및 **Worker Threads 멀티스레드 분산 처리**를 검증하는 영상입니다.
+
+https://github.com/user-attachments/assets/5894bba8-c18a-45c7-a8be-bfdd8023c8a7
+
 
 *(▲ 유니티 Profiler 화면을 통해 5,000개 엔티티 스폰 및 추적 중에도 GC Alloc 0 B 및 **안정적인 Frame Time(ms)*이 유지됨을 실시간으로 검증하는 시연 영상)*
 
